@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Problem of the Day</title>
+<meta name="description" content="Daily clinical pharmacology and pharmacometrics practice problems in Colab.">
+<style>
+  :root {
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --ink: #16181d;
+    --ink-soft: #5b6472;
+    --line: #e3e6eb;
+    --accent: #1b5e9c;
+    --accent-ink: #ffffff;
+    --badge: #eef3f9;
+    --ok: #1d7a4d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a;
+      --card: #1c1f25;
+      --ink: #e8eaee;
+      --ink-soft: #9aa4b2;
+      --line: #2c3138;
+      --accent: #5ea2e0;
+      --accent-ink: #10131a;
+      --badge: #252a32;
+      --ok: #52c08a;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14161a;
+    --card: #1c1f25;
+    --ink: #e8eaee;
+    --ink-soft: #9aa4b2;
+    --line: #2c3138;
+    --accent: #5ea2e0;
+    --accent-ink: #10131a;
+    --badge: #252a32;
+    --ok: #52c08a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  header h1 { font-size: 1.6rem; margin: 0 0 4px; letter-spacing: -0.01em; }
+  header p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 22px;
+    margin-top: 24px;
+  }
+  .eyebrow {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--ink-soft); font-weight: 600; margin: 0 0 10px;
+  }
+  .pid {
+    display: inline-block; font: 600 0.75rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--badge); color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 5px; padding: 5px 7px; vertical-align: middle;
+  }
+  .card h2 { font-size: 1.22rem; margin: 10px 0 8px; line-height: 1.35; }
+  .meta { color: var(--ink-soft); font-size: 0.9rem; margin: 0 0 18px; }
+  .meta code { font-size: 0.85em; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  a.btn {
+    display: inline-block; text-decoration: none; font-weight: 600; font-size: 0.92rem;
+    padding: 10px 16px; border-radius: 8px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--accent-ink);
+  }
+  a.btn.ghost { background: transparent; color: var(--accent); }
+  a.btn:hover { filter: brightness(1.08); }
+  .nav { margin-left: auto; display: flex; gap: 6px; }
+  .nav a, .nav span {
+    font-size: 0.85rem; text-decoration: none; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; background: var(--card);
+  }
+  .nav span { opacity: 0.4; }
+  .nav a:hover { color: var(--ink); border-color: var(--accent); }
+  h3.sec { font-size: 1.05rem; margin: 36px 0 0; }
+  .weekhead {
+    font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700;
+    color: var(--ink-soft); margin: 22px 0 8px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+  }
+  ol.list { list-style: none; margin: 0; padding: 0; }
+  ol.list li {
+    display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline;
+    padding: 11px 0; border-bottom: 1px solid var(--line);
+  }
+  ol.list li.today { background: var(--badge); border-radius: 8px; padding: 11px 12px; }
+  .li-main { flex: 1 1 320px; min-width: 0; }
+  .li-title { font-weight: 600; font-size: 0.95rem; }
+  .li-topic { color: var(--ink-soft); font-size: 0.84rem; }
+  .li-when { color: var(--ink-soft); font-size: 0.8rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .li-links { display: flex; gap: 12px; font-size: 0.85rem; white-space: nowrap; }
+  .li-links a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .li-links a.sol { color: var(--ink-soft); font-weight: 400; }
+  .li-links a:hover { text-decoration: underline; }
+  .done { color: var(--ok); font-weight: 700; }
+  footer { margin-top: 44px; color: var(--ink-soft); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 18px; }
+  footer code { background: var(--badge); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Problem of the Day</h1>
+    <p>Clinical pharmacology and pharmacometrics practice, 20 to 30 minutes a day, in Colab.</p>
+  </header>
+
+  <section class="card" id="today-card">
+    <p class="eyebrow" id="today-eyebrow">Today</p>
+    <div id="today-body">Loading.</div>
+  </section>
+
+  <h3 class="sec">All problems</h3>
+  <div id="all-list"></div>
+
+  <footer>
+    <p>
+      The schedule runs one problem per weekday from the start date, which is
+      <code id="foot-start"></code>. To move it, edit <code>START_DATE</code> near the
+      top of the script in <code>index.html</code>. To look at any problem out of
+      order, add <code>?n=3</code> to the address, or use the list above.
+    </p>
+    <p id="foot-repo"></p>
+  </footer>
+
+</div>
+
+<script>
+  // ------------------------------------------------------------------
+  // SETTINGS. This is the only part you need to touch.
+  // ------------------------------------------------------------------
+
+  const START_DATE = "2026-10-19";   // first problem lands on this date, YYYY-MM-DD
+  const OWNER  = "dc00086-glitch";
+  const REPO   = "internship-prep";
+  const BRANCH = "main";
+
+  // ------------------------------------------------------------------
+  // The problem list. Generated by tools/build.py, so do not hand edit.
+  // ------------------------------------------------------------------
+
+  // === PROBLEMS START ===
+  const PROBLEMS = [
+  {
+    "id": "W1D1",
+    "week": 1,
+    "day": 1,
+    "title": "Clean one plasma profile and get the terminal half-life",
+    "topic": "numpy: 1D arrays, nan masking, log-linear terminal slope",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d1_numpy_pk_profile.ipynb",
+    "solution": "solutions/week01/w1d1_numpy_pk_profile_solution.ipynb"
+  },
+  {
+    "id": "W1D2",
+    "week": 1,
+    "day": 2,
+    "title": "A subject by time matrix: axis reductions, SD, and broadcasting",
+    "topic": "numpy: 2D arrays, axis reductions, sample SD, broadcasting",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d2_numpy_subject_matrix.ipynb",
+    "solution": "solutions/week01/w1d2_numpy_subject_matrix_solution.ipynb"
+  },
+  {
+    "id": "W1D3",
+    "week": 1,
+    "day": 3,
+    "title": "Rat PK study: filter, summarise by group, and join the dosing record",
+    "topic": "pandas: filtering, derived columns, groupby.agg, left merge",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d3_pandas_wrangle_merge.ipynb",
+    "solution": "solutions/week01/w1d3_pandas_wrangle_merge_solution.ipynb"
+  },
+  {
+    "id": "W1D4",
+    "week": 1,
+    "day": 4,
+    "title": "A collaborator's spreadsheet: reshape wide to tidy and back again",
+    "topic": "pandas: melt, string cleaning, duplicates, pivot",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d4_pandas_tidy_wide.ipynb",
+    "solution": "solutions/week01/w1d4_pandas_tidy_wide_solution.ipynb"
+  },
+  {
+    "id": "W1D5",
+    "week": 1,
+    "day": 5,
+    "title": "Cells inside animals: aggregate first, then plot mean with SD",
+    "topic": "matplotlib and pandas: nested data, animal level aggregation, SD error bars",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d5_matplotlib_nested_sd.ipynb",
+    "solution": "solutions/week01/w1d5_matplotlib_nested_sd_solution.ipynb"
+  }
+];
+  // === PROBLEMS END ===
+
+  // ------------------------------------------------------------------
+
+  const WEEK_THEME = {
+    1: "numpy, pandas and matplotlib",
+    2: "pandas in depth, wrangling and joins",
+    3: "scipy: stats, curve_fit, solve_ivp",
+    4: "scikit-image and OpenCV",
+    5: "scikit-learn",
+    6: "PyTorch basics",
+    7: "PK and PD applications",
+    8: "PK and PD applications",
+  };
+
+  function colabUrl(path) {
+    return "https://colab.research.google.com/github/" + OWNER + "/" + REPO +
+           "/blob/" + BRANCH + "/" + path;
+  }
+  function githubUrl(path) {
+    return "https://github.com/" + OWNER + "/" + REPO + "/blob/" + BRANCH + "/" + path;
+  }
+
+  // Dates, handled as plain local calendar days so no time zone can shift them.
+  function parseDay(s) {
+    const p = s.split("-").map(Number);
+    return new Date(p[0], p[1] - 1, p[2]);
+  }
+  function today() {
+    const n = new Date();
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+  function isWeekday(d) {
+    const k = d.getDay();
+    return k >= 1 && k <= 5;
+  }
+  function addDays(d, n) {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+  }
+  function fmt(d) {
+    return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  }
+
+  // One problem per weekday, starting at START_DATE or the first weekday after it.
+  function scheduleDates(count) {
+    const out = [];
+    let d = parseDay(START_DATE);
+    let guard = 0;
+    while (out.length < count && guard < 4000) {
+      if (isWeekday(d)) out.push(d);
+      d = addDays(d, 1);
+      guard += 1;
+    }
+    return out;
+  }
+
+  const dates = scheduleDates(PROBLEMS.length);
+  const now = today();
+
+  // Index of the problem due today, or the most recent one on a weekend.
+  function dueIndex() {
+    let idx = -1;
+    for (let i = 0; i < dates.length; i++) {
+      if (dates[i].getTime() <= now.getTime()) idx = i;
+    }
+    return idx;
+  }
+
+  const due = dueIndex();
+  const override = new URLSearchParams(location.search).get("n");
+  let shown = due;
+  let isOverride = false;
+  if (override !== null && override !== "") {
+    const k = parseInt(override, 10) - 1;
+    if (!isNaN(k) && k >= 0 && k < PROBLEMS.length) { shown = k; isOverride = true; }
+  }
+
+  const eyebrow = document.getElementById("today-eyebrow");
+  const body = document.getElementById("today-body");
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function renderCard() {
+    if (PROBLEMS.length === 0) {
+      eyebrow.textContent = "Nothing here yet";
+      body.innerHTML = "<p>No problems have been built yet. Run <code>python3 tools/build.py</code>.</p>";
+      return;
+    }
+    if (due < 0 && !isOverride) {
+      const first = dates[0];
+      eyebrow.textContent = "Not started yet";
+      body.innerHTML = "<h2>Day 1 lands on " + esc(fmt(first)) + "</h2>" +
+        "<p class=\"meta\">Until then, everything is in the list below, " +
+        "or jump the gun with <code>?n=1</code>.</p>";
+      return;
+    }
+    const p = PROBLEMS[shown];
+    const weekend = !isWeekday(now);
+
+    if (isOverride) {
+      eyebrow.textContent = "Problem " + (shown + 1) + " of " + PROBLEMS.length;
+    } else if (shown >= PROBLEMS.length - 1 && due >= PROBLEMS.length - 1) {
+      eyebrow.textContent = weekend
+        ? "Weekend, and you are at the end of what is built"
+        : "Latest problem, nothing newer is built yet";
+    } else if (weekend) {
+      eyebrow.textContent = "Weekend, so here is the most recent one";
+    } else {
+      eyebrow.textContent = "Today, " + fmt(now);
+    }
+
+    const prev = shown > 0
+      ? "<a href=\"?n=" + shown + "\">Previous</a>"
+      : "<span>Previous</span>";
+    const next = shown < PROBLEMS.length - 1
+      ? "<a href=\"?n=" + (shown + 2) + "\">Next</a>"
+      : "<span>Next</span>";
+    const back = isOverride ? " <a href=\"./\">Back to today</a>" : "";
+
+    body.innerHTML =
+      "<span class=\"pid\">" + esc(p.id) + "</span>" +
+      "<h2>" + esc(p.title) + "</h2>" +
+      "<p class=\"meta\">" + esc(p.topic) + "<br>Week " + p.week + ", day " + p.day +
+        " &middot; " + esc(p.est) + " &middot; scheduled " + esc(fmt(dates[shown])) + "</p>" +
+      "<div class=\"btn-row\">" +
+        "<a class=\"btn\" href=\"" + colabUrl(p.path) + "\">Open in Colab</a>" +
+        "<a class=\"btn ghost\" href=\"" + githubUrl(p.path) + "\">View on GitHub</a>" +
+        "<span class=\"nav\">" + prev + next + back + "</span>" +
+      "</div>";
+  }
+
+  function renderList() {
+    const host = document.getElementById("all-list");
+    if (PROBLEMS.length === 0) { host.innerHTML = ""; return; }
+    const weeks = [];
+    PROBLEMS.forEach(function (p, i) {
+      if (!weeks[p.week]) weeks[p.week] = [];
+      weeks[p.week].push([p, i]);
+    });
+    let html = "";
+    weeks.forEach(function (items, wk) {
+      if (!items) return;
+      const theme = WEEK_THEME[wk] ? ": " + WEEK_THEME[wk] : "";
+      html += "<p class=\"weekhead\">Week " + wk + esc(theme) + "</p><ol class=\"list\">";
+      items.forEach(function (pair) {
+        const p = pair[0], i = pair[1];
+        const past = dates[i].getTime() < now.getTime();
+        const isToday = i === due;
+        html += "<li" + (isToday ? " class=\"today\"" : "") + ">" +
+          "<span class=\"li-main\">" +
+            "<span class=\"pid\">" + esc(p.id) + "</span> " +
+            "<span class=\"li-title\">" + esc(p.title) + "</span><br>" +
+            "<span class=\"li-topic\">" + esc(p.topic) + "</span>" +
+          "</span>" +
+          "<span class=\"li-when\">" + (isToday ? "<span class=\"done\">today</span>" : esc(fmt(dates[i]))) +
+            (past && !isToday ? "" : "") + "</span>" +
+          "<span class=\"li-links\">" +
+            "<a href=\"" + colabUrl(p.path) + "\">Colab</a>" +
+            "<a class=\"sol\" href=\"" + githubUrl(p.solution) + "\">solution</a>" +
+          "</span></li>";
+      });
+      html += "</ol>";
+    });
+    host.innerHTML = html;
+  }
+
+  document.getElementById("foot-start").textContent = START_DATE;
+  document.getElementById("foot-repo").innerHTML =
+    "Repository: <a href=\"https://github.com/" + OWNER + "/" + REPO + "\">" +
+    OWNER + "/" + REPO + "</a>";
+  renderCard();
+  renderList();
+</script>
+</body>
+</html>

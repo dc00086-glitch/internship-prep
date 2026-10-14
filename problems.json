@@ -1,0 +1,52 @@
+[
+  {
+    "id": "W1D1",
+    "week": 1,
+    "day": 1,
+    "title": "Clean one plasma profile and get the terminal half-life",
+    "topic": "numpy: 1D arrays, nan masking, log-linear terminal slope",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d1_numpy_pk_profile.ipynb",
+    "solution": "solutions/week01/w1d1_numpy_pk_profile_solution.ipynb"
+  },
+  {
+    "id": "W1D2",
+    "week": 1,
+    "day": 2,
+    "title": "A subject by time matrix: axis reductions, SD, and broadcasting",
+    "topic": "numpy: 2D arrays, axis reductions, sample SD, broadcasting",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d2_numpy_subject_matrix.ipynb",
+    "solution": "solutions/week01/w1d2_numpy_subject_matrix_solution.ipynb"
+  },
+  {
+    "id": "W1D3",
+    "week": 1,
+    "day": 3,
+    "title": "Rat PK study: filter, summarise by group, and join the dosing record",
+    "topic": "pandas: filtering, derived columns, groupby.agg, left merge",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d3_pandas_wrangle_merge.ipynb",
+    "solution": "solutions/week01/w1d3_pandas_wrangle_merge_solution.ipynb"
+  },
+  {
+    "id": "W1D4",
+    "week": 1,
+    "day": 4,
+    "title": "A collaborator's spreadsheet: reshape wide to tidy and back again",
+    "topic": "pandas: melt, string cleaning, duplicates, pivot",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d4_pandas_tidy_wide.ipynb",
+    "solution": "solutions/week01/w1d4_pandas_tidy_wide_solution.ipynb"
+  },
+  {
+    "id": "W1D5",
+    "week": 1,
+    "day": 5,
+    "title": "Cells inside animals: aggregate first, then plot mean with SD",
+    "topic": "matplotlib and pandas: nested data, animal level aggregation, SD error bars",
+    "est": "20-30 min",
+    "path": "problems/week01/w1d5_matplotlib_nested_sd.ipynb",
+    "solution": "solutions/week01/w1d5_matplotlib_nested_sd_solution.ipynb"
+  }
+]

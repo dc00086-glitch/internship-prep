@@ -1,0 +1,54 @@
+"""Fail if any tracked text file contains an em dash, en dash or similar.
+
+    python3 tools/check_dashes.py
+
+Hyphens only, everywhere. The banned characters are built from their code
+points on purpose, so that this file never contains one itself.
+"""
+
+import pathlib
+import sys
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+
+BANNED = {
+    chr(0x2010): "non breaking hyphen",
+    chr(0x2011): "non breaking hyphen",
+    chr(0x2012): "figure dash",
+    chr(0x2013): "en dash",
+    chr(0x2014): "em dash",
+    chr(0x2015): "horizontal bar",
+    chr(0x2212): "minus sign",
+}
+
+SUFFIXES = {".ipynb", ".html", ".md", ".py", ".json", ".txt",
+            ".R", ".r", ".css", ".js", ".yml", ".yaml"}
+
+
+def main():
+    hits = []
+    for path in sorted(ROOT.rglob("*")):
+        if not path.is_file() or path.suffix not in SUFFIXES:
+            continue
+        if ".git" in path.parts or "__pycache__" in path.parts:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            for ch, name in BANNED.items():
+                if ch in line:
+                    hits.append("%s:%d  %s  %s"
+                                % (path.relative_to(ROOT), lineno, name, line.strip()[:90]))
+    if hits:
+        print("Found %d banned dash characters:" % len(hits))
+        for hit in hits:
+            print("  " + hit)
+        return 1
+    n_files = sum(1 for p in ROOT.rglob("*")
+                  if p.is_file() and p.suffix in SUFFIXES
+                  and ".git" not in p.parts and "__pycache__" not in p.parts)
+    print("Scanned %d files. No em dashes, en dashes or lookalikes. Hyphens only." % n_files)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
