@@ -367,6 +367,24 @@ def _yerr_values(ax):
     return out
 
 
+def _plotted_means(ax):
+    import matplotlib.container as _mcont
+    for cont in ax.containers:
+        if isinstance(cont, _mcont.ErrorbarContainer):
+            line = cont.lines[0] if cont.lines else None
+            if line is not None:
+                try:
+                    return [float(v) for v in line.get_ydata()]
+                except Exception:
+                    return []
+        if isinstance(cont, _mcont.BarContainer):
+            try:
+                return [float(v) for v in cont.datavalues]
+            except Exception:
+                return []
+    return []
+
+
 def _scatter_point_count(ax):
     import matplotlib.collections as _mcoll
     total = 0
@@ -398,6 +416,15 @@ def _part_c():
     if not yerr:
         return ("No error bars found on the axes. Draw the group means with ax.errorbar and "
                 "pass yerr, rather than plotting the means as plain markers.")
+    means = sorted(_plotted_means(ax))
+    want_mean = sorted(float(v) for v in _EXP["group_mean"])
+    if means and len(means) == len(want_mean) and not _arr_close(means, want_mean, rtol=1e-3):
+        if _arr_close(means, sorted(float(v) for v in _EXP["group_mean_pooled"]), rtol=1e-3):
+            return ("The plotted group means come from pooling every cell rather than "
+                    "averaging the animal means, so part b needs fixing first.")
+        return ("The plotted group means do not match the mean of the animal means. Plot "
+                "the MEAN column of group_stats, and check part b first.")
+
     want_sd = sorted(float(v) for v in _EXP["group_sd"])
     want_sem = sorted(float(v) for v in _EXP["group_sem"])
     want_cell = sorted(float(v) for v in _EXP["group_sd_pooled"])

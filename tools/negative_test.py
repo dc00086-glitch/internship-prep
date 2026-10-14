@@ -108,6 +108,20 @@ CASES = [
                   "ax.set_xticks([0,1]); ax.set_xticklabels(list(group_stats['GROUP']))",
      "x axis has no label"),
     ("W1D5", "c", "fig, ax = plt.subplots()", "axes is still empty"),
+    ("W1D5", "c", "_POOL = cells.groupby('GROUP')['INTENSITY'].mean().reindex("
+                  "group_stats['GROUP']).to_numpy()\n"
+                  "fig, ax = plt.subplots()\n"
+                  "ax.errorbar([0,1], _POOL, yerr=group_stats['SD'], fmt='o')\n"
+                  "ax.scatter([0]*6+[1]*6, animal_level['MEAN_INTENSITY'])\n"
+                  "ax.set_xticks([0,1]); ax.set_xticklabels(list(group_stats['GROUP']))\n"
+                  "ax.set_xlabel('g'); ax.set_ylabel('i'); ax.set_title('t')",
+     "pooling every cell"),
+    ("W1D5", "c", "fig, ax = plt.subplots()\n"
+                  "ax.errorbar([0,1], [1.0, 2.0], yerr=group_stats['SD'], fmt='o')\n"
+                  "ax.scatter([0]*6+[1]*6, animal_level['MEAN_INTENSITY'])\n"
+                  "ax.set_xticks([0,1]); ax.set_xticklabels(list(group_stats['GROUP']))\n"
+                  "ax.set_xlabel('g'); ax.set_ylabel('i'); ax.set_title('t')",
+     "do not match the mean of the animal means"),
 ]
 
 
@@ -139,6 +153,11 @@ def run_case(spec, check_src, part, break_code):
             exec(compile(p["solution"], "<sol>", "exec"), ns)
         exec(compile(check_src, "<check>", "exec"), ns)
         exec(compile(break_code, "<break>", "exec"), ns)
+        try:
+            import matplotlib.pyplot as _plt
+            _plt.close("all")
+        except Exception:
+            pass
         fn = ns["_part_" + part]
         try:
             result = fn()
