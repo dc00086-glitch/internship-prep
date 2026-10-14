@@ -231,10 +231,17 @@ def header_md(spec, is_solution, nb_path):
     else:
         out += ["**How to work this notebook**", "",
                 "1. Run the setup cell to build the data.",
-                "2. Fill in every `# YOUR CODE` blank, one part at a time.",
-                "3. Run the check cell as often as you like. It tells you which "
+                "2. Run the **Toolkit** cell. It demonstrates every move this "
+                "problem needs, on a tiny made up example, so none of it is the "
+                "answer. Read its output before you start typing.",
+                "3. Fill in every `# YOUR CODE` blank, one part at a time.",
+                "4. Run the check cell as often as you like. It tells you which "
                 "part is wrong and why, without giving you the answer.",
-                "4. When you are done, run the last cell and copy the tutor block.", "",
+                "5. When you are done, run the last cell and copy the tutor block.", "",
+                "Stuck on something more basic, like what an array even is? The "
+                "[foundations notebook](%s) covers Python, numpy, pandas and "
+                "matplotlib from the ground up, and you can keep it open in a "
+                "second tab." % colab_url("reference/foundations.ipynb"), "",
                 "Nothing here needs installing. Everything used is already in Colab.", ""]
     return "\n".join(out)
 
@@ -251,18 +258,41 @@ def build_one(spec, mod_name):
         for part in spec.PARTS:
             exec(compile(part["solution"], "<sol:%s%s>" % (spec.PID, part["label"]), "exec"), ns)
         expected = spec.build_expected(ns)
+
+    # A toolkit runs after the setup cell, so it must not rebind anything the
+    # setup cell made, or the student's data quietly changes under them.
+    if getattr(spec, "TOOLKIT_CODE", None):
+        data_ns = {"__name__": "__data_only__"}
+        with contextlib.redirect_stdout(io.StringIO()):
+            exec(compile(spec.DATA_CODE, "<data:%s>" % spec.PID, "exec"), data_ns)
+            data_names = {k: v for k, v in data_ns.items() if not k.startswith("__")}
+            tk_ns = dict(data_ns)
+            exec(compile(spec.TOOLKIT_CODE, "<toolkit:%s>" % spec.PID, "exec"), tk_ns)
+        clobbered = sorted(k for k, v in data_names.items()
+                           if k in tk_ns and tk_ns[k] is not v)
+        if clobbered:
+            raise SystemExit(
+                "%s: the toolkit cell rebinds %s, which the setup cell created. "
+                "Rename the toolkit variable, usually with a demo_ prefix."
+                % (spec.PID, ", ".join(clobbered)))
     blob = encode_expected(expected)
 
     check_code = CHECK_PREAMBLE.replace("__EXPECTED_BLOB__", blob) + "\n\n" + spec.CHECK_CODE.rstrip() + "\n\n\ncheck()\n"
 
     for is_solution, out_path in ((False, prob_path), (True, sol_path)):
         cells = [new_markdown_cell(header_md(spec, is_solution, out_path)),
-                 new_markdown_cell(spec.SCENARIO_MD.strip()),
-                 new_markdown_cell(spec.TASK_MD.strip()),
+                 new_markdown_cell(spec.SCENARIO_MD.strip())]
+        if getattr(spec, "CONCEPT_MD", None):
+            cells.append(new_markdown_cell(spec.CONCEPT_MD.strip()))
+        cells += [new_markdown_cell(spec.TASK_MD.strip()),
                  new_markdown_cell("## Setup\n\nRun this cell first. It builds the "
                                    "data with a fixed random seed, so your numbers "
                                    "match the checker and match mine."),
                  new_code_cell(spec.DATA_CODE.strip() + "\n")]
+        if getattr(spec, "TOOLKIT_MD", None):
+            cells.append(new_markdown_cell(spec.TOOLKIT_MD.strip()))
+        if getattr(spec, "TOOLKIT_CODE", None):
+            cells.append(new_code_cell(spec.TOOLKIT_CODE.strip() + "\n"))
         for part in spec.PARTS:
             cells.append(new_markdown_cell(part["prompt_md"].strip()))
             body = part["solution"] if is_solution else part["starter"]

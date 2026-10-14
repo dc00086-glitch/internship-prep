@@ -6,20 +6,54 @@ minutes, no installs, no file uploads.
 
 **Site:** https://dc00086-glitch.github.io/internship-prep/
 
+## Start here
+
+[**The foundations notebook**](https://colab.research.google.com/github/dc00086-glitch/internship-prep/blob/main/reference/foundations.ipynb)
+covers Python, numpy, pandas and matplotlib from the ground up: making an
+array, what `nan` is for, the `axis` argument, what a DataFrame actually is,
+`groupby`, merges, reshaping, the figure and axes model, and a table of common
+error messages with what each one really means. Every cell runs and prints
+what it did.
+
+Run it once before week 1, then keep it open in a second tab.
+
 ## How a day works
 
 1. Open the site and press **Open in Colab** on today's problem.
-2. Read the scenario, run the setup cell. The data is synthetic and generated
-   in the notebook from a fixed seed, so your numbers always match mine.
-3. Fill in the `# YOUR CODE` blanks, one part at a time.
-4. Run the check cell as often as you like. Each part comes back `PASS`,
+2. Read the scenario and the **How it works** section, which explains the
+   package idea the problem is built on, not just the syntax.
+3. Run the setup cell. The data is synthetic and generated in the notebook
+   from a fixed seed, so your numbers always match mine.
+4. Run the **Toolkit** cell. It demonstrates every move the problem needs on a
+   tiny made up example, so none of it is the answer. Read its output before
+   you start typing.
+5. Fill in the `# YOUR CODE` blanks, one part at a time. Each part restates
+   what it wants and names the moves you need.
+6. Run the check cell as often as you like. Each part comes back `PASS`,
    `FAIL` with a reason, or `TODO` if you have not started it. A `FAIL` tells
    you what is wrong and nudges you, but never hands you the answer.
-5. Run the last cell and copy the **Send to tutor** block, along with your
+7. Run the last cell and copy the **Send to tutor** block, along with your
    code, into chat.
-6. Only after that, look in `solutions/` if you want to compare.
+8. Only after that, look in `solutions/` if you want to compare.
 
 Nothing to install. Everything used is already in Colab.
+
+### What is in each problem notebook
+
+| Section | What it is for |
+|---|---|
+| Scenario | the pharmacology framing, so the task has a reason to exist |
+| How it works | how the package itself works, written out properly |
+| Your task | parts a, b, c, with the exact variable names wanted |
+| Setup | synthetic data, fixed seed, no uploads |
+| Toolkit | every move demonstrated on a tiny made up example |
+| Parts a, b, c | `# YOUR CODE` blanks, each with its own explanation |
+| Check | PASS, FAIL with a reason, or TODO, per part |
+| Send to tutor | a block to copy into chat along with your code |
+
+The teaching sections are heaviest in the early weeks, where the point is
+learning the packages, and get lighter from about week 5 on, where the point
+is applying them.
 
 ## House rules baked into the checks
 
@@ -44,9 +78,11 @@ they are the two mistakes that cost people credibility fastest.
 ```
 problems/week01/      the notebooks you work in
 solutions/week01/     reference solutions, kept out of the problem notebooks
+reference/            the foundations notebook, not part of the daily schedule
 index.html            the site, picks today's problem by date
 problems.json         the problem list, generated
-tools/build.py        builds every notebook from tools/specs/
+tools/build.py        builds every problem notebook from tools/specs/
+tools/build_foundations.py  builds reference/foundations.ipynb
 tools/specs/          one small python file per problem, the actual source
 tools/verify.py       runs every notebook top to bottom in a clean kernel
 tools/negative_test.py feeds wrong answers to every check and insists they are caught
@@ -103,10 +139,11 @@ PKNCA, mrgsolve, and a small Shiny app.
 ## Rebuilding (only needed when problems change)
 
 ```bash
-python3 tools/build.py           # regenerate notebooks and the site list
-python3 tools/verify.py          # run all notebooks, solutions must pass
-python3 tools/negative_test.py   # wrong answers must be caught
-python3 tools/check_dashes.py    # hyphens only
+python3 tools/build.py             # regenerate notebooks and the site list
+python3 tools/build_foundations.py # regenerate the foundations notebook
+python3 tools/verify.py            # run all notebooks, solutions must pass
+python3 tools/negative_test.py     # wrong answers must be caught
+python3 tools/check_dashes.py      # hyphens only
 ```
 
 Needs `numpy pandas matplotlib scipy nbformat nbclient ipykernel`.

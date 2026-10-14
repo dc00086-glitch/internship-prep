@@ -31,6 +31,18 @@ TASK_MD = '''
 ## Your task
 
 ### Part a. Reduce along the right axis
+
+Both of these are one-line reductions. The only thing to get right is which
+direction you collapse, and the rule is that the axis you name is the one that
+disappears.
+
+"Mean at each timepoint" means you want one value per column, so the rows have
+to go. "Each subject's peak" means one value per row, so the columns have to
+go. If you are unsure which you got, print `.shape` of the result and ask
+whether that length is 8 or 9.
+
+Fill in `mean_by_time` (length 9), `cmax_by_subject` (length 8).
+Moves: `conc.mean(axis=...)`, `conc.max(axis=...)`.
 - `mean_by_time`: the mean concentration at each timepoint, so one value per
   **column**. Length 9.
 - `cmax_by_subject`: each subject's own peak concentration, so one value per
@@ -43,6 +55,18 @@ TASK_MD = '''
   **percent**, which is `100 * SD / mean`. Length 9.
 
 ### Part c. Put every subject on a common scale
+
+Normalising each profile to its own peak strips out the amplitude differences
+so you can compare the **shape** of absorption and elimination between
+subjects. It is a standard first look before any modelling.
+
+You already have each subject's peak from part a, but dividing straight by it
+will fail, because a `(8, 9)` and an `(8,)` do not line up: numpy matches
+shapes from the right and tries 9 against 8. Read the error when it happens,
+it is a useful one to recognise. Make the divisor `(8, 1)` and it works.
+
+Fill in `norm_conc`, shape `(8, 9)`, every row peaking at exactly 1.0.
+Moves: `conc.max(axis=1, keepdims=True)`, or `.reshape(-1, 1)`, then divide.
 - `norm_conc`: shape `(8, 9)`, where every subject's profile has been divided
   by that **same subject's** own Cmax. Each row must therefore peak at exactly
   `1.0`.
@@ -117,7 +141,19 @@ print("cmax_by_subject", np.shape(cmax_by_subject), cmax_by_subject)
         prompt_md='''
 ### Part b. Describe the variability
 
-Remember: SD, not SEM, and the sample SD with `n - 1`.
+Same reduction direction as the mean in part a, since you want the spread
+across subjects at each timepoint.
+
+Two things to be deliberate about. This is a **sample** of subjects, so the SD
+divides by `n - 1`, and numpy will not do that unless you ask with `ddof=1`.
+And it is SD, not SEM, so nothing here should involve a square root of the
+number of subjects.
+
+CV% is just the SD expressed as a percentage of the mean, which makes
+variability comparable across timepoints with very different magnitudes.
+
+Fill in `sd_by_time`, `cv_by_time`, both length 9.
+Moves: `conc.std(axis=..., ddof=1)`, then elementwise division and `* 100`.
 ''',
         starter='''
 # Part b. Describe the variability. SD, not SEM. Sample SD, so ddof=1.
@@ -293,4 +329,115 @@ def _part_c():
     if not _arr_close(arr, _EXP["norm_conc"]):
         return "`norm_conc` has the right shape and every row peaks at 1.0, but the other values do not match."
     return None
+'''
+
+
+TOOLKIT_MD = '''
+## Toolkit for this problem
+
+The one idea to get straight here is **axis**. In a 2D array, the axis you
+name is the one that **disappears**.
+
+- `axis=0` collapses the rows, so you are left with **one value per column**.
+- `axis=1` collapses the columns, so you are left with **one value per row**.
+
+In this problem rows are subjects and columns are timepoints, so "per
+timepoint" means `axis=0`, and "per subject" means `axis=1`.
+
+| What you want to do | How |
+|---|---|
+| make a 2D array | `np.array([[1, 2, 3], [4, 5, 6]])` |
+| its size | `a.shape`, which reads `(rows, columns)` |
+| mean of each column | `a.mean(axis=0)` |
+| mean of each row | `a.mean(axis=1)` |
+| biggest in each row | `a.max(axis=1)` |
+| sample SD, with `n - 1` | `a.std(axis=0, ddof=1)` |
+| population SD, with `n` | `a.std(axis=0)`, the default, which is **not** what we want |
+| keep the collapsed axis | `a.max(axis=1, keepdims=True)` gives shape `(rows, 1)` |
+| divide every row by its own number | `a / a.max(axis=1, keepdims=True)` |
+'''
+
+TOOLKIT_CODE = '''
+import numpy as np
+
+# A tiny made up example: 2 rows, 3 columns. Nothing here is the answer.
+demo = np.array([[1.0, 2.0, 3.0],
+                 [4.0, 5.0, 9.0]])
+
+print("demo:")
+print(demo)
+print("shape:", demo.shape, " <- (rows, columns)")
+
+print("")
+print("--- 1. the axis you name is the one that disappears ---")
+print("demo.mean(axis=0) :", demo.mean(axis=0), " length", demo.mean(axis=0).size,
+      " <- rows gone, one value per COLUMN")
+print("demo.mean(axis=1) :", demo.mean(axis=1), " length", demo.mean(axis=1).size,
+      " <- columns gone, one value per ROW")
+print("demo.max(axis=1)  :", demo.max(axis=1), " <- biggest in each row")
+
+print("")
+print("--- 2. sample SD versus population SD ---")
+print("std(axis=0)          :", np.round(demo.std(axis=0), 4), " <- divides by n, the default")
+print("std(axis=0, ddof=1)  :", np.round(demo.std(axis=0, ddof=1), 4), " <- divides by n-1, what we want")
+
+print("")
+print("--- 3. why plain max(axis=1) will not divide cleanly ---")
+demo_rowmax = demo.max(axis=1)
+print("demo_rowmax       :", demo_rowmax, " shape", demo_rowmax.shape)
+try:
+    demo / demo_rowmax
+except ValueError as err:
+    print("demo / demo_rowmax fails with:", err)
+
+print("")
+print("--- 4. keepdims makes the shapes line up ---")
+demo_rowmax_col = demo.max(axis=1, keepdims=True)
+print("with keepdims     :", demo_rowmax_col.tolist(), " shape", demo_rowmax_col.shape)
+print("demo / that:")
+print(demo / demo_rowmax_col, " <- every row now peaks at 1.0")
+print("")
+print("reshape(-1, 1) does the same thing:", demo_rowmax.reshape(-1, 1).shape)
+'''
+
+
+CONCEPT_MD = '''
+## How numpy works in two dimensions
+
+**A 2D array is a rectangle with a meaning attached to each direction.** Here
+rows are subjects and columns are timepoints, so `conc[3, 5]` is subject 4 at
+timepoint 6, counting from zero. `conc.shape` reports `(8, 9)`, always as
+`(rows, columns)`.
+
+**Reductions and the axis argument.** A reduction is anything that turns many
+numbers into fewer: mean, max, sum, std. On a 2D array you have to say which
+direction to collapse, and that is what `axis` is for. The rule worth
+memorising:
+
+> **The axis you name is the one that disappears.**
+
+So `axis=0` destroys the row direction and leaves one value per column, and
+`axis=1` destroys the column direction and leaves one value per row. People
+get this backwards constantly, which is why the fix is always the same: print
+`.shape` of what came out and ask whether that length is the number of
+subjects or the number of timepoints.
+
+**ddof, and why the default is wrong for you.** The SD of a sample divides by
+`n - 1` rather than `n`, because you used the data itself to estimate the mean
+and that uses up one degree of freedom. Dividing by `n` gives a number that is
+systematically too small. numpy defaults to `ddof=0`, dividing by `n`, which
+suits physics and image processing where you often have the whole population.
+It does not suit you, who almost always has a sample of subjects drawn from a
+population. So in numpy you must write `ddof=1` every single time. Pandas made
+the opposite choice and already uses `n - 1`, which is a real inconsistency
+between the two libraries and a classic source of quietly wrong numbers.
+
+**Broadcasting.** When you combine two arrays of different shapes, numpy tries
+to stretch the smaller one to fit, comparing shapes **from the right**. A
+`(8, 9)` and a `(9,)` line up, because 9 matches 9, and the `(9,)` is reused
+for every row. A `(8, 9)` and an `(8,)` do **not** line up, because it checks
+9 against 8 and gives up. This is the error you will hit in part c, and it is
+not a bug in your thinking: you want to divide each row by its own number, so
+you have to say so by making that array `(8, 1)` instead of `(8,)`. Adding
+`keepdims=True` to the reduction does it, and so does `.reshape(-1, 1)`.
 '''

@@ -35,6 +35,21 @@ TASK_MD = '''
 ## Your task
 
 ### Part a. Aggregate the cells up to the animal
+
+This is the step that makes everything after it valid. One row per animal,
+holding that animal's mean across its own cells.
+
+Group by animal and group together, so each animal keeps its treatment label
+and you do not have to join it back on afterwards. Naming the outputs inside
+`.agg()` saves a rename. The aggregation `"size"` counts rows in each group,
+which here means cells per animal.
+
+Keep `N_CELLS` even though nothing downstream divides by it. It is the number
+that shows how unequal the imaging effort was, and therefore why pooling the
+cells would have distorted the group mean.
+
+Fill in `animal_level`, with `ANIMAL`, `GROUP`, `MEAN_INTENSITY`, `N_CELLS`.
+Moves: `.groupby([...]).agg(NAME=("COL", "mean"), ...)`, `.reset_index()`.
 Build `animal_level`: one row per animal, with exactly these columns, named
 exactly:
 
@@ -62,6 +77,23 @@ means is **not** the mean of all the cells, because the animals contributed
 unequal numbers of cells.
 
 ### Part c. The figure
+
+A figure that shows only two means and two error bars hides your whole
+dataset. Overlaying every animal costs one line and lets a reader see the
+spread, the sample size and any outlier at a glance. Make it your default.
+
+Build it the explicit way: get `fig` and `ax` from `plt.subplots()`, then call
+methods on `ax`. `yerr` comes from the `SD` column of `group_stats`, which is
+the SD **across animals**, not across cells and not the SEM.
+
+Label all three of x, y and title. An unlabelled axis makes a figure
+unreadable to everyone except the person who made it, including you in three
+weeks.
+
+Fill in `fig`, `ax`.
+Moves: `plt.subplots(figsize=...)`, `ax.errorbar(..., yerr=..., fmt="o")`,
+`ax.scatter(...)`, `ax.set_xticks`, `ax.set_xticklabels`, `ax.set_xlabel`,
+`ax.set_ylabel`, `ax.set_title`.
 Build a single axes figure, assigned to `fig` and `ax`:
 
 - `fig, ax = plt.subplots(figsize=(6, 4.5))`
@@ -149,7 +181,21 @@ print(animal_level)
         prompt_md='''
 ### Part b. Group statistics across animals
 
-Build this from `animal_level`, so that n is the number of animals.
+Build this from `animal_level`, **not** from `cells`. That one choice is the
+whole point of the problem.
+
+Every number here is computed across animals. `MEAN` is the mean of the animal
+means, which is not the same as the mean of all the cells, because the animals
+contributed unequal numbers of cells. `SD` is the spread of the animal means,
+which is what tells a reader how reproducible the effect is. `N_ANIMALS`
+should come out at 6 per group; if you see numbers in the hundreds you are
+counting cells.
+
+Sort by `GROUP`, which puts `Drug` first.
+
+Fill in `group_stats`, with `GROUP`, `MEAN`, `SD`, `N_ANIMALS`.
+Moves: `.groupby("GROUP").agg(MEAN=("MEAN_INTENSITY", "mean"), ...)`,
+`.reset_index()`, `.sort_values(...)`.
 ''',
         starter='''
 # Part b. One row per group, computed across animals: GROUP, MEAN, SD, N_ANIMALS
@@ -477,4 +523,168 @@ def _part_c():
             return ("The x tick labels do not name the groups. One of them should read %r. "
                     "Use ax.set_xticklabels with the group names." % name)
     return None
+'''
+
+
+TOOLKIT_MD = '''
+## Toolkit for this problem
+
+Two steps, in this order, always: **cells up to animals**, then **animals up
+to groups**. Everything below runs on a tiny made up table, so none of it is
+the answer.
+
+| What you want to do | How |
+|---|---|
+| aggregate and name the result | `df.groupby("ID").agg(M=("VAL", "mean"), N=("VAL", "size"))` |
+| turn group keys back into columns | `.reset_index()` |
+| count rows in a group | the aggregation `"size"` |
+| sample SD | the aggregation `"std"`, which pandas already does with `n - 1` |
+| a figure with one axes | `fig, ax = plt.subplots(figsize=(6, 4.5))` |
+| points with error bars | `ax.errorbar([0, 1], means, yerr=sds, fmt="o", capsize=6)` |
+| scattered points on top | `ax.scatter(x, y)` |
+| name the ticks | `ax.set_xticks([0, 1])` then `ax.set_xticklabels(["Drug", "Vehicle"])` |
+| label the axes | `ax.set_xlabel(...)`, `ax.set_ylabel(...)`, `ax.set_title(...)` |
+
+Why `yerr` must be the SD of the animal means, and not either of the other
+two numbers that are easy to reach for:
+
+- the SD of all the **cells** describes how much cells vary inside an animal,
+  which is a microscope question, not a drug question,
+- the **SEM** is that SD divided by the square root of n, so it shrinks when
+  you image more cells, which makes a weak effect look convincing.
+'''
+
+TOOLKIT_CODE = '''
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# A tiny made up table: 2 animals per arm, a handful of cells each, on purpose
+# an unequal number of cells. Nothing here is the answer to the problem.
+demo = pd.DataFrame({
+    "ID":  ["a1", "a1", "a1", "a2", "a2", "b1", "b1", "b2", "b2", "b2"],
+    "ARM": ["ctl", "ctl", "ctl", "ctl", "ctl", "trt", "trt", "trt", "trt", "trt"],
+    "VAL": [10.0, 12.0, 14.0, 30.0, 34.0, 4.0, 6.0, 9.0, 11.0, 13.0],
+})
+print("demo, one row per cell:")
+print(demo)
+
+print("")
+print("--- 1. cells up to animals ---")
+demo_animal = (demo
+               .groupby(["ID", "ARM"])
+               .agg(MEAN_VAL=("VAL", "mean"), N_CELLS=("VAL", "size"))
+               .reset_index())
+print(demo_animal)
+print("note: the aggregation names become the column names, so no rename is needed")
+
+print("")
+print("--- 2. animals up to groups ---")
+demo_group = (demo_animal
+              .groupby("ARM")
+              .agg(MEAN=("MEAN_VAL", "mean"), SD=("MEAN_VAL", "std"), N_ANIMALS=("MEAN_VAL", "size"))
+              .reset_index()
+              .sort_values("ARM")
+              .reset_index(drop=True))
+print(demo_group)
+
+print("")
+print("--- 3. why the order matters ---")
+demo_pooled = demo.groupby("ARM")["VAL"].agg(["mean", "std", "size"])
+print("mean of the animal means :", [round(v, 3) for v in demo_group["MEAN"]])
+print("mean of every cell pooled:", [round(v, 3) for v in demo_pooled["mean"]],
+      " <- different, because the animals gave unequal numbers of cells")
+print("")
+print("SD across animals        :", [round(v, 3) for v in demo_group["SD"]], " <- what we plot")
+print("SD across pooled cells   :", [round(v, 3) for v in demo_pooled["std"]], " <- a microscope question")
+demo_sem = demo_group["SD"] / np.sqrt(demo_group["N_ANIMALS"])
+print("SEM across animals       :", [round(v, 3) for v in demo_sem], " <- never plot this")
+print("")
+print("n if you count animals   :", list(demo_group["N_ANIMALS"]))
+print("n if you count cells     :", list(demo_pooled["size"]), " <- the inflated n to avoid")
+
+print("")
+print("--- 4. the figure, built the same way you will build yours ---")
+demo_fig, demo_ax = plt.subplots(figsize=(5, 3.5))
+demo_order = list(demo_group["ARM"])
+demo_ax.errorbar([0, 1], demo_group["MEAN"], yerr=demo_group["SD"],
+                 fmt="o", color="black", capsize=6, linestyle="none", zorder=3)
+demo_x = [demo_order.index(a) for a in demo_animal["ARM"]]
+demo_ax.scatter(demo_x, demo_animal["MEAN_VAL"], s=40, alpha=0.75, zorder=2)
+demo_ax.set_xticks([0, 1])
+demo_ax.set_xticklabels(demo_order)
+demo_ax.set_xlim(-0.5, 1.5)
+demo_ax.set_xlabel("Made up arm")
+demo_ax.set_ylabel("Made up value")
+demo_ax.set_title("Toolkit demo, not the answer")
+plt.show()
+'''
+
+
+CONCEPT_MD = '''
+## How matplotlib works, and why the unit of replication matters
+
+### The object model
+
+Almost every confusing matplotlib example online comes from mixing two
+different styles. There is `plt.plot(...)`, which draws on whatever figure
+happens to be current, a hidden piece of state you cannot see. And there is
+the explicit style, where you hold the objects yourself:
+
+```python
+fig, ax = plt.subplots(figsize=(6, 4.5))
+```
+
+- **`fig`** is the whole picture: the canvas, its size, and what gets saved.
+- **`ax`** is one set of axes inside it: the data area, its ticks, its labels,
+  and the things drawn on it.
+
+You then tell `ax` what to draw, by calling methods on it. `ax.errorbar(...)`,
+`ax.scatter(...)`, `ax.set_ylabel(...)`. Everything is a method on the thing
+it affects, which means you can always find the right call by asking "which
+object does this belong to". It also means a figure with several panels is no
+harder: `plt.subplots(1, 2)` hands you an array of axes, and each one is
+driven exactly the same way. Use the explicit style always. The hidden-state
+style falls apart the moment a notebook has more than one figure.
+
+Drawing order is controlled by `zorder`, higher being nearer the front, which
+is how you keep scattered points from hiding your summary markers.
+
+### The statistics this plot is really about
+
+**Replication is about independence, not sample size.** Two measurements count
+as replicates only if they are independent draws from the thing you are
+studying. You are studying a drug effect in animals, so two animals are two
+replicates. Fifty cells from one animal are fifty measurements of **that one
+animal**, sharing its genetics, its dose, its exposure, its slide and its
+staining batch. They tell you about variation between cells, which is a real
+and sometimes interesting quantity, but it is not the quantity your group
+comparison is about.
+
+Treating cells as n does three separate kinds of damage:
+
+1. **n is inflated**, here from 12 to several hundred, so confidence intervals
+   collapse and almost anything looks significant. This has a name,
+   pseudoreplication, and it is one of the most common fatal flaws in cell
+   biology papers.
+2. **Animals get unequal weight.** Pooling means the animal you imaged 60
+   cells from counts twelve times as much as the one you imaged 5 from. The
+   group mean drifts toward whichever animal you had most patience with, which
+   is a property of your afternoon, not of the drug.
+3. **The error bar answers the wrong question.** The SD of pooled cells mostly
+   measures cell to cell variation and staining noise. A reader looking at
+   your figure wants to know how reproducible the effect is **between
+   animals**, because that is what predicts whether it replicates.
+
+The fix is the two-step aggregation you are about to write: cells up to one
+number per animal, then animals up to a group mean and SD. After step one,
+every animal is one row, which is exactly the shape every standard statistical
+test assumes.
+
+**And the SD versus SEM choice.** SEM is the SD divided by the square root of
+n, so it shrinks as you add animals even when the biology is identical. It
+describes how precisely you have located the mean, not how much the animals
+differ. For a figure whose job is to show a biological effect, SD is the
+honest choice, and a reader who knows n can always work out the SEM. A reader
+shown SEM cannot work backwards without being told n.
 '''

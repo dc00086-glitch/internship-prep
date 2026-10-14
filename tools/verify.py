@@ -40,7 +40,9 @@ def parse_results(text):
 
 def main():
     failures = []
-    for kind in ("solutions", "problems"):
+    for kind in ("solutions", "problems", "reference"):
+        if not (ROOT / kind).exists():
+            continue
         for path in sorted((ROOT / kind).rglob("*.ipynb")):
             rel = path.relative_to(ROOT)
             try:
@@ -48,6 +50,10 @@ def main():
             except Exception as exc:
                 failures.append("%s: did not execute: %s: %s" % (rel, type(exc).__name__, str(exc)[:400]))
                 print("EXEC FAIL  %s" % rel)
+                continue
+
+            if kind == "reference":
+                print("ok         %s  (reference, ran clean)" % rel)
                 continue
 
             results = parse_results(text)

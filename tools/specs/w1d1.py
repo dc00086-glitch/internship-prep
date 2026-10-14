@@ -24,6 +24,17 @@ TASK_MD = '''
 ## Your task
 
 ### Part a. Deal with the BLQ samples
+
+The lab handed you `nan` wherever a sample fell below the assay limit. Until
+you know which samples are real, no summary of this profile means anything,
+so this is always step one.
+
+Build a mask of the usable samples, count the ones that are not, then use that
+mask to pull the usable times and concentrations out. The same mask works on
+both arrays because they are the same length and in the same order.
+
+Fill in `measurable`, `n_blq`, `t_meas`, `c_meas`.
+Moves: `np.isnan`, `~`, `np.sum`, and indexing an array with a mask.
 - `measurable`: a boolean array, `True` where `conc` holds a real number and
   `False` where the sample came back BLQ.
 - `n_blq`: a whole number, how many samples came back BLQ.
@@ -117,7 +128,16 @@ print("c_meas    :", c_meas)
         prompt_md='''
 ### Part b. Describe the peak
 
-Use the measurable samples only.
+Cmax and Tmax are two questions about the same point on the curve: how high
+did it get, and when. `np.max` answers the first. The second needs
+`np.argmax`, which hands you a **position**, and you then look that position
+up in the time array to turn it into an hour.
+
+Work from the measurable samples, so `c_meas` and `t_meas`, not `conc` and
+`time_h`. Taking a max over an array containing `nan` gives you `nan`.
+
+Fill in `cmax`, `tmax`.
+Moves: `np.max`, `np.argmax`, and indexing with the position you get back.
 ''',
         starter='''
 # Part b. Describe the peak.
@@ -143,7 +163,17 @@ print("tmax:", tmax, "h")
         prompt_md='''
 ### Part c. Terminal half-life
 
-Use the last 4 measurable samples.
+Once absorption is finished, elimination is first order, meaning a constant
+fraction leaves per hour. On a log scale that is a straight line, so fitting
+a line to `log(concentration)` against time recovers the rate constant.
+
+Slice off the last 4 measurable samples, fit the line, and convert. The fitted
+slope is negative because the drug is going away, and `lambda_z` is defined as
+the positive version of it. The half-life is then `ln(2) / lambda_z`.
+
+Fill in `t_term`, `c_term`, `lambda_z`, `t_half`.
+Moves: `a[-4:]`, `np.log`, `np.polyfit(x, y, deg=1)` which returns
+`[slope, intercept]`.
 ''',
         starter='''
 # Part c. Terminal half-life from the last 4 measurable samples.
@@ -319,4 +349,112 @@ def _part_c():
         return ("`t_half` does not follow from your lambda_z. It should be np.log(2) divided "
                 "by lambda_z, in hours.")
     return None
+'''
+
+
+TOOLKIT_MD = '''
+## Toolkit for this problem
+
+Everything below runs on a tiny made up array, so none of it is the answer.
+Run the cell, read the output, then use the same moves on the real data.
+
+| What you want to do | How |
+|---|---|
+| make an array from a list | `np.array([1.0, 2.0, 3.0])` |
+| how many entries it has | `a.size`, or `len(a)` |
+| flag the missing values | `np.isnan(a)` gives True where the value is nan |
+| flip a True/False array | `~mask` turns every True into False and back |
+| count the Trues | `np.sum(mask)`, because True counts as 1 |
+| keep only some entries | `a[mask]`, where `mask` is True/False and the same length |
+| the biggest value | `np.max(a)` |
+| where the biggest value is | `np.argmax(a)` gives a position, not a value |
+| the value at a position | `a[3]`, counting from 0 |
+| the last 4 entries | `a[-4:]` |
+| natural log | `np.log(a)`, which is ln, not log base 10 |
+| fit a straight line | `np.polyfit(x, y, deg=1)` returns `[slope, intercept]` |
+'''
+
+TOOLKIT_CODE = '''
+import numpy as np
+
+# A tiny made up example. Nothing here is the answer to the problem.
+demo_t = np.array([0.0, 1.0, 2.0, 3.0, 4.0])          # make an array from a list
+demo_c = np.array([5.0, 9.0, np.nan, 6.0, 2.0])       # nan stands in for a missing value
+
+print("demo_t            :", demo_t)
+print("demo_c            :", demo_c)
+print("how many entries  :", demo_c.size)
+
+print("")
+print("--- 1. finding the missing values ---")
+print("np.isnan(demo_c)  :", np.isnan(demo_c))        # True where the value is MISSING
+print("~np.isnan(demo_c) :", ~np.isnan(demo_c))       # True where the value is USABLE
+print("count of nan      :", int(np.sum(np.isnan(demo_c))))
+
+print("")
+print("--- 2. using a True/False array to pick entries out ---")
+demo_keep = ~np.isnan(demo_c)
+print("times kept        :", demo_t[demo_keep])       # same mask works on both arrays
+print("values kept       :", demo_c[demo_keep])
+
+print("")
+print("--- 3. the biggest value, and when it happened ---")
+demo_good_t = demo_t[demo_keep]
+demo_good_c = demo_c[demo_keep]
+print("biggest value     :", np.max(demo_good_c))
+print("its position      :", np.argmax(demo_good_c), " <- a position, not a value")
+print("time at that spot :", demo_good_t[np.argmax(demo_good_c)], " <- feed the position back in")
+
+print("")
+print("--- 4. the last few entries ---")
+print("last 2 times      :", demo_good_t[-2:])
+print("last 2 values     :", demo_good_c[-2:])
+
+print("")
+print("--- 5. natural log and a straight line fit ---")
+print("np.log(values)    :", np.log(demo_good_c))
+demo_slope, demo_intercept = np.polyfit(demo_good_t, np.log(demo_good_c), deg=1)
+print("slope             :", round(demo_slope, 4), " <- negative when the line goes down")
+print("intercept         :", round(demo_intercept, 4))
+'''
+
+
+CONCEPT_MD = '''
+## How numpy works, in two minutes
+
+**The problem numpy solves.** A plain Python list holds things in order, but
+you cannot do maths on it. `[1, 2, 3] * 2` gives you `[1, 2, 3, 1, 2, 3]`,
+which is almost never what a scientist wants. To halve every concentration in
+a list you need a loop.
+
+A numpy **array** holds numbers of one kind and does maths on all of them at
+once. `np.array([1, 2, 3]) * 2` gives `[2, 4, 6]`. That is the whole idea, and
+everything else follows from it:
+
+- **Elementwise by default.** `conc / 1000` converts every value. `t2 - t1`
+  subtracts pairwise. No loop, and it runs in compiled code rather than
+  Python, so it is fast enough for real datasets.
+- **Comparisons give you arrays too.** `conc > 5` does not give one True or
+  False, it gives one per entry. That array of True and False is called a
+  **mask**, and you can hand it straight back to the array to pull out just
+  those entries: `conc[conc > 5]`. This is how nearly all filtering is done.
+- **A mask built from one array works on another**, as long as they are the
+  same length and in the same order. That is what lets you say "give me the
+  times where the concentration was measurable".
+
+**Why `nan` exists.** `nan` means "not a number", a slot where a value should
+be but is not. Bioanalytical data is full of them, because a sample below the
+assay limit has no number, only a statement that it was too low. numpy
+deliberately makes `nan` contagious: `np.max` of anything containing one
+returns `nan` rather than quietly ignoring it. That is a feature. It forces
+you to decide what to do about missing data instead of letting the decision
+get made for you. You either drop them with a mask, or use the `nan`-aware
+version of the function, such as `np.nanmax`.
+
+**Positions versus values.** `np.max` answers "what was the biggest". It
+cannot tell you *when* that happened, because the array of concentrations
+knows nothing about time. `np.argmax` answers "where was the biggest", giving
+you a position. You then use that position to look up the matching time in the
+other array. Cmax and Tmax are exactly this pair of questions, which is why
+they come up together.
 '''

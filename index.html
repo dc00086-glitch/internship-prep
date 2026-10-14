@@ -106,6 +106,13 @@
   .li-links a.sol { color: var(--ink-soft); font-weight: 400; }
   .li-links a:hover { text-decoration: underline; }
   .done { color: var(--ok); font-weight: 700; }
+  .start-here {
+    margin: 14px 0 0; padding: 11px 14px; font-size: 0.9rem;
+    background: var(--badge); border: 1px solid var(--line); border-radius: 9px;
+    color: var(--ink-soft);
+  }
+  .start-here a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .start-here a:hover { text-decoration: underline; }
   footer { margin-top: 44px; color: var(--ink-soft); font-size: 0.85rem; border-top: 1px solid var(--line); padding-top: 18px; }
   footer code { background: var(--badge); padding: 2px 5px; border-radius: 4px; font-size: 0.9em; }
   footer a { color: var(--accent); }
@@ -117,6 +124,11 @@
   <header>
     <h1>Problem of the Day</h1>
     <p>Clinical pharmacology and pharmacometrics practice, 20 to 30 minutes a day, in Colab.</p>
+    <p class="start-here">
+      New to numpy or pandas, or want a refresher?
+      <a id="foundations-link" href="#">Open the foundations notebook</a>,
+      and keep it in a second tab while you work.
+    </p>
   </header>
 
   <section class="card" id="today-card">
@@ -376,6 +388,8 @@
     host.innerHTML = html;
   }
 
+  document.getElementById("foundations-link").href =
+    colabUrl("reference/foundations.ipynb");
   document.getElementById("foot-start").textContent = START_DATE;
   document.getElementById("foot-repo").innerHTML =
     "Repository: <a href=\"https://github.com/" + OWNER + "/" + REPO + "\">" +

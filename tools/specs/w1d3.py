@@ -28,11 +28,38 @@ TASK_MD = '''
 ## Your task
 
 ### Part a. Get your bearings and drop the predose samples
+
+Before anything else, find out how big the dataset really is. Counting rows is
+not counting animals: each animal appears once per timepoint, so the row count
+is a multiple of the animal count.
+
+Then drop the predose samples. They are all zero by definition and they would
+drag every mean down and inflate every SD if you left them in a summary.
+
+Fill in `n_animals`, `df_post`.
+Moves: `df["COL"].nunique()`, and boolean filtering `df[df["COL"] > 0]`.
 - `n_animals`: a whole number, how many distinct animals appear in `pk`.
 - `df_post`: the post-dose rows only, meaning `TIME_H` strictly greater than 0.
   Keep all four columns.
 
 ### Part b. Mean and SD profile per dose group
+
+This is split, apply, combine: pandas splits the table into one chunk per
+group and timepoint, computes your statistics on each chunk, and stacks the
+answers back up.
+
+Two details decide whether the result is usable downstream. The grouping keys
+come back sitting in the **index**, not as columns, so `.reset_index()` is
+needed to flatten them. And the aggregation names come out as `mean` and
+`std`, so rename them to the names the task asks for.
+
+Pandas `std` already divides by `n - 1`, so you do not need `ddof` here. That
+is the opposite of numpy.
+
+Build `summary` from `df_post`, with columns `GROUP`, `TIME_H`, `CONC_MEAN`,
+`CONC_SD`.
+Moves: `.groupby([...])["COL"].agg(["mean", "std"])`, `.reset_index()`,
+`.rename(columns={...})`.
 From `df_post`, build `summary`: one row per `GROUP` and `TIME_H` combination,
 with exactly these four columns, named exactly like this:
 
@@ -175,7 +202,24 @@ print(summary)
         prompt_md='''
 ### Part c. Join the dosing record and recover the real mg/kg
 
-Start from `pk`, not `df_post`.
+Start from `pk`, the full table, not `df_post`.
+
+The dosing record is incomplete, and how you join decides whether you find
+that out. The default join is `inner`, which keeps only matched rows and
+discards the rest with no error and no warning. Use a **left** join so every
+row of `pk` survives and the gaps show up as `NaN` where you can see them.
+
+Then check: print `len(pk)` and `len(pk_merged)` and make sure they agree. Get
+into this habit now. A merge that silently drops an animal is one of the most
+common ways a PK analysis produces a confident wrong answer.
+
+Body weight is recorded in **grams** and the dose in milligrams, so convert
+before dividing. Sanity check the result against the nominal 1, 3 and 10
+mg/kg.
+
+Fill in `pk_merged` (with a `DOSE_MG_PER_KG` column), `n_missing_weight`.
+Moves: `pd.merge(left, right, on=..., how="left")`, arithmetic between
+columns, `df["COL"].isna().sum()`.
 ''',
         starter='''
 # Part c. Join the dosing record onto pk without losing any rows.
@@ -367,4 +411,145 @@ def _part_c():
         return ("`n_missing_weight` is not the number of rows with no body weight. Count where "
                 "BODYWEIGHT_G is na in pk_merged.")
     return None
+'''
+
+
+TOOLKIT_MD = '''
+## Toolkit for this problem
+
+A DataFrame is a table. Each column has a name, and you pull one out with
+`df["NAME"]`. Everything below runs on a tiny made up table, so none of it is
+the answer.
+
+| What you want to do | How |
+|---|---|
+| look at the first rows | `df.head()` |
+| its size | `df.shape`, which reads `(rows, columns)` |
+| the column names | `df.columns` |
+| one column | `df["CONC"]` |
+| how many distinct values | `df["ANIMAL"].nunique()` |
+| keep some rows | `df[df["TIME_H"] > 0]` |
+| add a column | `df["NEW"] = df["A"] / df["B"]` |
+| mean and SD per group | `df.groupby(["G", "T"])["CONC"].agg(["mean", "std"])` |
+| turn group keys back into columns | `.reset_index()` |
+| rename columns | `.rename(columns={"mean": "CONC_MEAN"})` |
+| join two tables | `pd.merge(left, right, on="ANIMAL", how="left")` |
+| count the gaps | `df["COL"].isna().sum()` |
+
+Two things worth knowing before you start.
+
+- Pandas `std` already divides by `n - 1`, so it is the sample SD you want.
+  This is the opposite of numpy, where you have to ask with `ddof=1`.
+- `how="left"` keeps every row of the left table. `how="inner"` keeps only
+  rows that matched, and quietly drops the rest. Always compare `len()`
+  before and after a merge.
+'''
+
+TOOLKIT_CODE = '''
+import numpy as np
+import pandas as pd
+
+# A tiny made up table. Nothing here is the answer to the problem.
+demo_tbl = pd.DataFrame({
+    "SUBJ": ["S1", "S1", "S2", "S2", "S3", "S3"],
+    "ARM":  ["A", "A", "A", "A", "B", "B"],
+    "TIME": [0.0, 1.0, 0.0, 1.0, 0.0, 1.0],
+    "VAL":  [0.0, 10.0, 0.0, 14.0, 0.0, 30.0],
+})
+print("demo_tbl:")
+print(demo_tbl)
+print("shape:", demo_tbl.shape, "   columns:", list(demo_tbl.columns))
+
+print("")
+print("--- 1. one column, and counting distinct values ---")
+print("demo_tbl['VAL']      :", list(demo_tbl["VAL"]))
+print("distinct subjects:", demo_tbl["SUBJ"].nunique())
+
+print("")
+print("--- 2. keeping some rows ---")
+demo_post = demo_tbl[demo_tbl["TIME"] > 0]
+print(demo_post)
+print("rows before:", len(demo_tbl), " rows after:", len(demo_post))
+
+print("")
+print("--- 3. mean and SD per group, then flattened ---")
+demo_summary = (demo_post
+                .groupby(["ARM", "TIME"])["VAL"]
+                .agg(["mean", "std"])
+                .reset_index()
+                .rename(columns={"mean": "VAL_MEAN", "std": "VAL_SD"}))
+print(demo_summary)
+print("note: ARM and TIME are ordinary columns now, thanks to reset_index()")
+print("note: pandas std already uses n-1, so VAL_SD is the sample SD")
+
+print("")
+print("--- 4. joining a second table, and what a missing row does ---")
+demo_info = pd.DataFrame({"SUBJ": ["S1", "S2"], "WEIGHT_G": [300.0, 280.0]})
+print("demo_info has no row for S3:")
+print(demo_info)
+
+demo_left = pd.merge(demo_tbl, demo_info, on="SUBJ", how="left")
+demo_inner = pd.merge(demo_tbl, demo_info, on="SUBJ", how="inner")
+print("")
+print("rows in demo_tbl        :", len(demo_tbl))
+print("rows after how=left :", len(demo_left), " <- every row kept, S3 gets NaN")
+print("rows after how=inner:", len(demo_inner), " <- S3 silently dropped")
+print("")
+print(demo_left)
+print("")
+print("rows with no weight :", int(demo_left["WEIGHT_G"].isna().sum()))
+
+print("")
+print("--- 5. adding a column built from other columns ---")
+demo_left["VAL_PER_KG"] = demo_left["VAL"] / (demo_left["WEIGHT_G"] / 1000.0)
+print(demo_left[["SUBJ", "VAL", "WEIGHT_G", "VAL_PER_KG"]])
+'''
+
+
+CONCEPT_MD = '''
+## How pandas works, in two minutes
+
+**A DataFrame is a dictionary of columns, not a grid of cells.** That sounds
+pedantic but it explains most of the behaviour. Each column is a **Series**: a
+numpy array plus an **index**, which is a set of labels for the rows. So
+`df["CONC"]` hands you one Series, and arithmetic on it is elementwise, just
+like numpy. Each column has its own type, which is why one table can hold
+animal names, group labels and concentrations at the same time, something a
+numpy array cannot do.
+
+**The index is the part people trip over.** Every DataFrame has row labels,
+and by default they are 0, 1, 2 and so on. They look like positions but they
+are labels, and they stick to their rows. Filter out some rows and the
+survivors keep their original numbers, so the index now has gaps. That is
+usually harmless, but it matters after a `groupby`, where the grouping keys
+get *moved into the index*. The columns you grouped by then stop being
+columns, and anything downstream looking for them fails. `.reset_index()`
+pushes them back out into ordinary columns, which is why you will see it after
+almost every groupby.
+
+**Split, apply, combine.** That is the whole model behind `groupby`. Pandas
+splits the table into one chunk per group, applies your summary to each chunk,
+then stacks the answers back into a new table. `df.groupby(["GROUP",
+"TIME_H"])["CONC"].agg(["mean", "std"])` reads exactly that way: split by
+group and time, look at the concentration column, compute mean and SD of each
+chunk. You get one row per combination that actually occurs.
+
+**Joins, and the one that bites.** `pd.merge` matches rows between two tables
+on a shared column. The `how` argument decides what happens to rows that find
+no partner:
+
+- `how="left"` keeps every row of the left table, filling the missing columns
+  with `NaN`. You can see what is missing.
+- `how="inner"`, which is the **default**, keeps only rows that matched and
+  silently discards the rest. No error, no warning, just a smaller table.
+
+That default is why a PK analysis can lose an entire animal and still run to
+completion with a plausible-looking answer. The habit that protects you is
+boring and absolute: print `len()` before and after every merge, and if the
+number changed, know why. Rows can also go *up*, if the right-hand table has
+more than one row per key, which quietly duplicates your data.
+
+**One more pandas quirk.** Pandas `std()` already divides by `n - 1`, unlike
+numpy, which needs `ddof=1`. Two libraries, two defaults, and nothing warns
+you.
 '''

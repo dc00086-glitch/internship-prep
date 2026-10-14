@@ -29,6 +29,20 @@ TASK_MD = '''
 ## Your task
 
 ### Part a. Wide to tidy
+
+`melt` folds a set of columns down into two: one holding what used to be the
+column **names**, one holding the **values**. That is what turns the timepoint
+from metadata into data you can actually group, filter and plot against.
+
+`id_vars` is the list of columns to leave alone. Everything you do not list
+gets folded, so naming `ANIMAL` and `GROUP` is enough; you do not have to list
+the timepoint columns.
+
+Use `var_name` and `value_name` to get the output columns named properly
+straight away, otherwise they arrive as `variable` and `value`.
+
+Fill in `tidy`, with columns `ANIMAL`, `GROUP`, `TIME_LABEL`, `INHIB_PCT`.
+Moves: `wide.melt(id_vars=[...], var_name=..., value_name=...)`.
 Reshape `wide` into `tidy`: one row per animal per timepoint, with these four
 columns, named exactly:
 
@@ -40,6 +54,22 @@ columns, named exactly:
 | `INHIB_PCT` | the percent inhibition value |
 
 ### Part b. Make the time column numeric and sort
+
+Your timepoints are still text like `"T_24"`. Strip the prefix and convert, or
+every later step treats them as labels rather than numbers.
+
+This matters more than it looks. Sorting text compares character by character,
+so `"T_24"` sorts **before** `"T_4"`, and a profile ordered that way is
+scrambled in a way that is easy to miss once it is on a plot. Convert first,
+then sort.
+
+Finish by resetting the index. Sorting moves the rows but the old row labels
+travel with them, so without `drop=True` the index comes out shuffled.
+
+Fill in `tidy_clean`, with `ANIMAL`, `GROUP`, `TIME_H`, `INHIB_PCT`, sorted by
+animal then time, index running 0, 1, 2 and up.
+Moves: `.str.replace(..., regex=False)`, `.astype(float)`, `.drop(columns=...)`,
+`.sort_values([...])`, `.reset_index(drop=True)`.
 Build `tidy_clean` from `tidy`:
 - add a numeric column `TIME_H`, the hours pulled out of `TIME_LABEL`, so
   `T_24` becomes `24.0`,
@@ -48,6 +78,25 @@ Build `tidy_clean` from `tidy`:
 - sort by `ANIMAL` then `TIME_H`, and reset the index so it runs 0, 1, 2, ...
 
 ### Part c. Find the duplicate, then go back to wide
+
+Try the pivot first, and let it fail. `ValueError: Index contains duplicate
+entries` is the reshape telling you two rows claim the same animal and the
+same timepoint, so there is no single value to put in that cell. That is a
+real data problem surfacing, not a coding mistake.
+
+Here the cause is a record that was sent twice, so dropping the exact repeats
+is the right fix. If the two rows had held *different* values it would be a
+scientific question instead, and `pivot_table` with an aggregation would be
+the tool. Knowing which situation you are in means looking first.
+
+Note that `duplicated()` flags only the repeats and leaves the first
+occurrence alone, which is what you want to count. `keep=False` flags both
+copies and would give you double.
+
+Fill in `n_dup_rows`, `wide_again` (index `ANIMAL`, columns the `TIME_H`
+values).
+Moves: `.duplicated().sum()`, `.drop_duplicates()`,
+`.pivot(index=..., columns=..., values=...)`.
 - `n_dup_rows`: a whole number, how many rows of `tidy_clean` are exact repeats
   of a row that already appeared.
 - `wide_again`: the duplicate-free data pivoted back to wide, with `ANIMAL` as
@@ -320,4 +369,138 @@ def _part_c():
                 "pivoted INHIB_PCT, and that you dropped duplicates rather than aggregating "
                 "them into a mean.")
     return None
+'''
+
+
+TOOLKIT_MD = '''
+## Toolkit for this problem
+
+Wide means one row per subject and one column per timepoint, which is how
+spreadsheets look. Tidy means one row per observation, which is what every
+plotting and modelling tool wants. `melt` goes wide to tidy, `pivot` goes
+back.
+
+| What you want to do | How |
+|---|---|
+| wide to tidy | `df.melt(id_vars=["ID"], var_name="TIME_LABEL", value_name="VAL")` |
+| strip text from a column | `df["COL"].str.replace("T_", "", regex=False)` |
+| text to number | `.astype(float)` |
+| drop a column | `df.drop(columns=["COL"])` |
+| sort | `df.sort_values(["ID", "TIME"])` |
+| renumber the index 0, 1, 2 | `df.reset_index(drop=True)` |
+| flag repeated rows | `df.duplicated()` is True for every repeat after the first |
+| count them | `df.duplicated().sum()` |
+| remove them | `df.drop_duplicates()` |
+| tidy back to wide | `df.pivot(index="ID", columns="TIME", values="VAL")` |
+
+Two traps this problem is built around.
+
+- `id_vars` lists the columns to **keep as they are**. Every other column gets
+  folded into the new label and value columns.
+- Sorting on the **text** `T_4` and `T_24` puts `T_24` first, because text
+  sorts character by character. Sorting on the **number** 4 and 24 does the
+  right thing. This is exactly why you convert before you sort.
+'''
+
+TOOLKIT_CODE = '''
+import numpy as np
+import pandas as pd
+
+# A tiny made up wide table, with one row repeated on purpose.
+demo_wide = pd.DataFrame({
+    "ID":  ["A", "B", "A"],
+    "ARM": ["ctl", "trt", "ctl"],
+    "T_0": [1.0, 2.0, 1.0],
+    "T_4": [5.0, 8.0, 5.0],
+    "T_24": [3.0, 6.0, 3.0],
+})
+print("demo_wide (row 2 repeats row 0):")
+print(demo_wide)
+
+print("")
+print("--- 1. wide to tidy ---")
+demo_tidy = demo_wide.melt(id_vars=["ID", "ARM"], var_name="TLAB", value_name="VAL")
+print(demo_tidy)
+print("rows: %d wide became %d tidy, which is %d rows times %d timepoint columns"
+      % (len(demo_wide), len(demo_tidy), len(demo_wide), 3))
+
+print("")
+print("--- 2. the label is still text, so make it a number ---")
+demo_tidy["TIME"] = demo_tidy["TLAB"].str.replace("T_", "", regex=False).astype(float)
+print(demo_tidy.head(4))
+print("")
+print("sorted as TEXT :", sorted(demo_tidy["TLAB"].unique()), " <- T_24 lands before T_4")
+print("sorted as NUMBER:", [float(v) for v in sorted(demo_tidy["TIME"].unique())], " <- correct")
+
+print("")
+print("--- 3. drop a column, sort, renumber the index ---")
+demo_clean = (demo_tidy
+              .drop(columns=["TLAB"])
+              .sort_values(["ID", "TIME"])
+              .reset_index(drop=True))
+print(demo_clean)
+
+print("")
+print("--- 4. finding and removing repeated rows ---")
+print("duplicated() :", list(demo_clean.duplicated()), " <- True only for the repeats")
+print("how many     :", int(demo_clean.duplicated().sum()))
+print("keep=False   :", int(demo_clean.duplicated(keep=False).sum()),
+      " <- flags BOTH copies, which is not what the task asks for")
+demo_dedup = demo_clean.drop_duplicates()
+print("rows after drop_duplicates:", len(demo_dedup))
+
+print("")
+print("--- 5. tidy back to wide ---")
+print("pivot on the data that still has repeats:")
+try:
+    demo_clean.pivot(index="ID", columns="TIME", values="VAL")
+except ValueError as err:
+    print("  fails with:", err)
+print("")
+print("pivot after dropping them:")
+print(demo_dedup.pivot(index="ID", columns="TIME", values="VAL"))
+'''
+
+
+CONCEPT_MD = '''
+## Why tidy data, and how reshaping works
+
+**Two layouts for the same numbers.** A spreadsheet laid out for human eyes is
+usually **wide**: one row per subject, and one column per timepoint. It is
+compact and easy to read down a page. The alternative is **tidy**, sometimes
+called long: one row per observation, with columns that say what each
+observation is. The same 60 numbers become 60 rows instead of 10 rows by 6
+columns.
+
+**Why every tool wants tidy.** In a wide table, the timepoint is stored in the
+*column name*, which is metadata, not data. You cannot group by it, filter on
+it, do arithmetic with it, or put it on an axis, because as far as the
+software is concerned it is just a label. The moment you want "mean by
+timepoint" or "plot concentration against time", you need time to be a column
+of values. Tidy layout makes every variable a column, so ggplot2, seaborn,
+`groupby`, `lme4` and every modelling tool can all find what they need the
+same way. This is why reshaping is the first thing you do with a collaborator
+file, every time, and why it is worth being quick at.
+
+**melt and pivot are inverses.** `melt` takes a set of columns and folds their
+names into one column and their values into another. `id_vars` is the list of
+columns to leave alone; everything else gets folded. `pivot` does the reverse,
+spreading one column's values out into new columns.
+
+**Why pivot can fail when melt cannot.** Going wide to tidy is always
+possible. Going back is not, because wide format has exactly one cell per
+(row, column) pair. If your tidy data has two rows claiming the same animal
+and the same timepoint, pivot has no way to choose, so it raises `Index
+contains duplicate entries`. That error is not a nuisance, it is the reshape
+telling you the data has a problem you had not noticed. Here the cause is a
+record that got sent twice. Elsewhere it could be two real measurements that
+need averaging, which is what `pivot_table` is for. Which one you are looking
+at is a scientific judgment, not a coding one, so look before you reach for
+either fix.
+
+**Text that looks like numbers.** After melting, your timepoints are strings
+like `"T_24"`. Sorting strings compares them character by character, so
+`"T_24"` lands before `"T_4"` because `2` comes before `4`. Convert to a
+number before you sort, or your profiles come out scrambled in a way that is
+surprisingly easy to miss on a plot.
 '''
