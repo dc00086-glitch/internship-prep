@@ -458,3 +458,20 @@ you a position. You then use that position to look up the matching time in the
 other array. Cmax and Tmax are exactly this pair of questions, which is why
 they come up together.
 '''
+
+
+# Functions this problem introduces. Keys must exist in tools/function_catalog.py.
+FUNCTIONS = [
+    'np.random.default_rng',
+    'np.array',
+    '.size',
+    'np.isnan',
+    '~',
+    'boolean indexing',
+    'np.sum',
+    'np.max / np.min',
+    'np.argmax',
+    'np.log',
+    'np.polyfit',
+    'len',
+]

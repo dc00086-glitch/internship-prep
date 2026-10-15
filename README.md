@@ -17,6 +17,15 @@ what it did.
 
 Run it once before week 1, then keep it open in a second tab.
 
+[**The function reference (Word)**](https://github.com/dc00086-glitch/internship-prep/raw/main/reference/function_reference.docx)
+is a lookup for every function the problems use: what it does, one line of
+real use, and the mistake it tends to invite. It also carries the house rules
+and a table of common error messages. Each entry is tagged with the problem
+that introduces it, so you can see what you have already met.
+
+It is generated, and it is rebuilt whenever a week is added, so it always
+matches the notebooks. Do not edit it by hand.
+
 ## How a day works
 
 1. Open the site and press **Open in Colab** on today's problem.
@@ -78,7 +87,11 @@ they are the two mistakes that cost people credibility fastest.
 ```
 problems/week01/      the notebooks you work in
 solutions/week01/     reference solutions, kept out of the problem notebooks
-reference/            the foundations notebook, not part of the daily schedule
+reference/            the foundations notebook and the function reference docx
+tools/function_catalog.py   every function, with what it does and what to watch for
+tools/build_glossary.py     builds the function reference docx
+tools/make_docx.js          turns the glossary data into a Word file
+tools/build_all.py          runs all three builders in order
 index.html            the site, picks today's problem by date
 problems.json         the problem list, generated
 tools/build.py        builds every problem notebook from tools/specs/
@@ -139,11 +152,20 @@ PKNCA, mrgsolve, and a small Shiny app.
 ## Rebuilding (only needed when problems change)
 
 ```bash
-python3 tools/build.py             # regenerate notebooks and the site list
-python3 tools/build_foundations.py # regenerate the foundations notebook
-python3 tools/verify.py            # run all notebooks, solutions must pass
-python3 tools/negative_test.py     # wrong answers must be caught
-python3 tools/check_dashes.py      # hyphens only
+python3 tools/build_all.py       # notebooks, foundations, and the Word reference
+python3 tools/verify.py          # run all notebooks, solutions must pass
+python3 tools/negative_test.py   # wrong answers must be caught
+python3 tools/check_dashes.py    # hyphens only, including inside the Word file
 ```
 
-Needs `numpy pandas matplotlib scipy nbformat nbclient ipykernel`.
+Needs `numpy pandas matplotlib scipy nbformat nbclient ipykernel`, plus node
+and the `docx` npm package for the Word reference.
+
+### Adding a function to the reference
+
+1. Add an entry to `tools/function_catalog.py`.
+2. List its key in the `FUNCTIONS` list of whichever spec introduces it.
+3. Run `python3 tools/build_all.py`.
+
+The build refuses to run if a spec lists a function the catalog does not
+know, so the two cannot drift apart.

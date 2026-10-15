@@ -688,3 +688,18 @@ differ. For a figure whose job is to show a biological effect, SD is the
 honest choice, and a reader who knows n can always work out the SEM. A reader
 shown SEM cannot work backwards without being told n.
 '''
+
+
+# Functions this problem introduces. Keys must exist in tools/function_catalog.py.
+FUNCTIONS = [
+    'plt.subplots',
+    'ax.errorbar',
+    'ax.scatter',
+    'zorder',
+    'axis labels',
+    'ax.set_xticks',
+    'ax.legend',
+    'plt.show',
+    'np.where',
+    'np.sqrt',
+]

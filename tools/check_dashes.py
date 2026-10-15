@@ -7,6 +7,8 @@ points on purpose, so that this file never contains one itself.
 """
 
 import pathlib
+import shutil
+import subprocess
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
@@ -38,6 +40,18 @@ def main():
                 if ch in line:
                     hits.append("%s:%d  %s  %s"
                                 % (path.relative_to(ROOT), lineno, name, line.strip()[:90]))
+    # The Word file is binary, so read its text through pandoc when available.
+    docx = ROOT / "reference" / "function_reference.docx"
+    if docx.exists() and shutil.which("pandoc"):
+        out = subprocess.run(["pandoc", "-t", "plain", str(docx)],
+                             capture_output=True, text=True)
+        if out.returncode == 0:
+            for lineno, line in enumerate(out.stdout.splitlines(), start=1):
+                for ch, name in BANNED.items():
+                    if ch in line:
+                        hits.append("reference/function_reference.docx:%d  %s  %s"
+                                    % (lineno, name, line.strip()[:90]))
+
     if hits:
         print("Found %d banned dash characters:" % len(hits))
         for hit in hits:

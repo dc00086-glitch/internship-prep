@@ -553,3 +553,22 @@ more than one row per key, which quietly duplicates your data.
 numpy, which needs `ddof=1`. Two libraries, two defaults, and nothing warns
 you.
 '''
+
+
+# Functions this problem introduces. Keys must exist in tools/function_catalog.py.
+FUNCTIONS = [
+    'pd.DataFrame',
+    '.head',
+    '.columns',
+    'selecting a column',
+    'boolean filtering',
+    'adding a column',
+    '.nunique / .unique',
+    '.isna',
+    '.groupby',
+    '.agg',
+    '.reset_index',
+    '.rename',
+    'pd.merge',
+    'np.repeat / np.tile',
+]

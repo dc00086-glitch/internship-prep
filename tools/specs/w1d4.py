@@ -504,3 +504,17 @@ like `"T_24"`. Sorting strings compares them character by character, so
 number before you sort, or your profiles come out scrambled in a way that is
 surprisingly easy to miss on a plot.
 '''
+
+
+# Functions this problem introduces. Keys must exist in tools/function_catalog.py.
+FUNCTIONS = [
+    '.melt',
+    '.str accessor',
+    '.astype',
+    '.drop',
+    '.sort_values',
+    '.duplicated',
+    '.drop_duplicates',
+    '.pivot',
+    'pd.concat',
+]

@@ -127,7 +127,9 @@
     <p class="start-here">
       New to numpy or pandas, or want a refresher?
       <a id="foundations-link" href="#">Open the foundations notebook</a>,
-      and keep it in a second tab while you work.
+      and keep it in a second tab while you work. There is also a
+      <a id="glossary-link" href="#">function reference (Word)</a>
+      covering every function used so far, which grows with each week.
     </p>
   </header>
 
@@ -390,6 +392,9 @@
 
   document.getElementById("foundations-link").href =
     colabUrl("reference/foundations.ipynb");
+  document.getElementById("glossary-link").href =
+    "https://github.com/" + OWNER + "/" + REPO + "/raw/" + BRANCH +
+    "/reference/function_reference.docx";
   document.getElementById("foot-start").textContent = START_DATE;
   document.getElementById("foot-repo").innerHTML =
     "Repository: <a href=\"https://github.com/" + OWNER + "/" + REPO + "\">" +

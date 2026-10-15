@@ -441,3 +441,15 @@ not a bug in your thinking: you want to divide each row by its own number, so
 you have to say so by making that array `(8, 1)` instead of `(8,)`. Adding
 `keepdims=True` to the reduction does it, and so does `.reshape(-1, 1)`.
 '''
+
+
+# Functions this problem introduces. Keys must exist in tools/function_catalog.py.
+FUNCTIONS = [
+    '.shape',
+    'np.mean',
+    'np.std',
+    'keepdims',
+    '.reshape',
+    'broadcasting',
+    'np.round',
+]
