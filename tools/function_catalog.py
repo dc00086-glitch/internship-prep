@@ -563,6 +563,156 @@ ENTRIES = [
      'for name, part in summary.groupby("DOSE"):\n    ax.errorbar(part["T"], part["M"], yerr=part["SD"], label=name)',
      "Use it for plotting and for anything genuinely per group. For computing "
      "statistics, agg and transform are faster and clearer."),
+    # ---------------------------------------------------- added for week 3
+    ("numpy", "np.exp", "np.exp(x)",
+     "The exponential, which undoes np.log. Together they are how you move "
+     "between the raw scale and the log scale.",
+     "geo_mean = np.exp(np.mean(np.log(auc)))",
+     "np.exp undoes np.log. If you used np.log10 you have to undo it with "
+     "10 ** x instead, and mixing the pair up changes the answer."),
+
+    ("numpy", "np.logspace", "np.logspace(-2, 2, 10)",
+     "Values evenly spaced on a LOG scale, which is how concentration ranges "
+     "in a dose response are laid out.",
+     "np.logspace(-2, 2, 10) gives 0.01 up to 100",
+     "The arguments are the exponents, not the values. np.linspace would bunch "
+     "almost every point at the top of the range."),
+
+    ("numpy", "np.diag", "np.diag(m)",
+     "The diagonal of a matrix. On a covariance matrix that is the variance of "
+     "each parameter, so its square root is the standard error.",
+     "perr = np.sqrt(np.diag(pcov))",
+     "Given a 1D array instead it does the opposite and builds a diagonal "
+     "matrix, which is occasionally a confusing surprise."),
+
+    ("numpy", "argument unpacking", "f(x, *popt)",
+     "Spreads an array into a function's separate arguments, so the same call "
+     "works whatever the number of parameters.",
+     "pred = decay(times, *popt)",
+     "Without the star you pass the whole array as the first parameter, which "
+     "gives either a shape error or silent broadcasting."),
+
+    ("scipy", "from scipy import stats", "from scipy import stats",
+     "The statistics module: tests, distributions and summary helpers.",
+     "from scipy import stats\nstats.ttest_ind(a, b)",
+     "Import the submodule explicitly. A bare import scipy does not give you "
+     "scipy.stats."),
+
+    ("scipy", "result objects", "res = stats.ttest_ind(a, b)",
+     "Every scipy.stats test returns an object, not a plain pair. Read it by "
+     "name with res.statistic and res.pvalue.",
+     "res = stats.shapiro(x)\nprint(res.pvalue)",
+     "Unpacking by position still works but breaks when scipy adds fields, and "
+     "it reads worse."),
+
+    ("scipy", "stats.ttest_ind", "stats.ttest_ind(a, b, equal_var=False)",
+     "Two sample t-test comparing means. With equal_var=False it is Welch's "
+     "version, which does not assume equal variances.",
+     "stats.ttest_ind(vehicle, treated, equal_var=False)",
+     "The DEFAULT is equal_var=True, the pooled version, which is usually not "
+     "what you want. Welch costs nothing when variances match and saves you "
+     "when they do not, especially with unequal group sizes."),
+
+    ("scipy", "stats.mannwhitneyu", 'stats.mannwhitneyu(a, b, alternative="two-sided")',
+     "A rank based comparison, asking whether one group's values tend to be "
+     "larger, with no assumption about distribution shape.",
+     'stats.mannwhitneyu(vehicle, treated, alternative="two-sided")',
+     "Pass alternative explicitly so the choice is visible. Being rank based "
+     "it barely notices an extreme value, which is its appeal on skewed data."),
+
+    ("scipy", "stats.shapiro", "stats.shapiro(x)",
+     "Tests the null hypothesis that a sample came from a normal "
+     "distribution. A SMALL p value is evidence AGAINST normality.",
+     "p_raw = stats.shapiro(auc).pvalue",
+     "Nearly powerless on small samples and oversensitive on large ones, so "
+     "treat it as one input next to a look at the data, never as a gate."),
+
+    ("scipy", "stats.iqr", "stats.iqr(x)",
+     "The interquartile range, the 75th percentile minus the 25th. A spread "
+     "measure no single extreme value can move.",
+     "stats.iqr(vehicle)",
+     "Report it next to the median, the way SD goes next to the mean."),
+
+    ("scipy", "geometric mean", "np.exp(np.mean(np.log(x)))",
+     "The mean computed in log space and brought back. The right centre for "
+     "multiplicative quantities such as AUC and Cmax.",
+     "geo_mean = np.exp(np.mean(np.log(auc)))",
+     "Always at or below the arithmetic mean, and equal to the median for "
+     "perfectly lognormal data. A fold change on a label is a ratio of these."),
+
+    ("scipy", "geometric CV", "100 * np.sqrt(np.exp(sd_log ** 2) - 1)",
+     "The spread of lognormal data as a percentage, derived from the SD of the "
+     "LOGS rather than from the raw values.",
+     "sd_log = np.std(np.log(auc), ddof=1)\ngeo_cv = 100 * np.sqrt(np.exp(sd_log ** 2) - 1)",
+     "There is no way to get this from the arithmetic mean and SD, which is "
+     "why a PK table can show a CV matching nothing else on the page."),
+
+    ("scipy", "curve_fit", "popt, pcov = curve_fit(f, xdata, ydata, p0=[...])",
+     "Least squares fitting of a model you write. The model takes the "
+     "independent variable FIRST, then the parameters.",
+     "def decay(t, c0, k):\n    return c0 * np.exp(-k * t)\npopt, pcov = curve_fit(decay, t, c, p0=[50, 0.1])",
+     "Keep pcov. Its diagonal, square rooted, is the standard error of each "
+     "parameter, which is what turns an estimate into a result."),
+
+    ("scipy", "p0", "curve_fit(f, x, y, p0=[50.0, 0.1])",
+     "Where the search starts. The default is 1.0 for every parameter, which "
+     "is rarely the right order of magnitude.",
+     "p0=[conc[0], np.log(2) / 7.0]",
+     "It only needs the right order of magnitude, and you can usually read one "
+     "off the data. A bad p0 gives nonsense or RuntimeError: Optimal "
+     "parameters not found."),
+
+    ("scipy", "bounds", "curve_fit(f, x, y, bounds=([0, 0], [200, 1e4]))",
+     "Lower bounds then upper bounds, one entry per parameter in signature "
+     "order, keeping the search where the parameters mean something.",
+     "bounds=([0.0, 1e-6, 0.1], [200.0, 1e4, 10.0])",
+     "Not cheating: it states what you already know, such as a concentration "
+     "being positive. Use np.inf for an upper bound you do not want to set."),
+
+    ("scipy", "Emax model", "emax * c / (ec50 + c)",
+     "The standard concentration response curve: zero at zero, a ceiling at "
+     "Emax, and half the ceiling at c = EC50.",
+     "def emax_model(c, emax, ec50):\n    return emax * c / (ec50 + c)",
+     "EC50 is a CONCENTRATION in the units of c, not a percentage. The same "
+     "hyperbola as Michaelis-Menten and as simple receptor occupancy."),
+
+    ("scipy", "sigmoid Emax", "emax * c ** h / (ec50 ** h + c ** h)",
+     "Emax with a Hill coefficient controlling steepness. h = 1 gives the "
+     "plain model back, so the two models are nested.",
+     "def sigmoid_model(c, emax, ec50, h):\n    return emax * c ** h / (ec50 ** h + c ** h)",
+     "h must be applied to BOTH c and ec50, or EC50 stops meaning half "
+     "maximal. The richer model always fits at least as well, so a lower RMSE "
+     "is not evidence that h is real."),
+
+    ("scipy", "solve_ivp", "solve_ivp(fun, (t0, t1), [y0], t_eval=grid, args=(...))",
+     "Numerical integration of a differential equation. The derivative takes "
+     "(t, y) with y an array, and returns one derivative per state.",
+     "def rhs(t, y, cl, v):\n    return [-(cl / v) * y[0]]\nsol = solve_ivp(rhs, (0, 24), [dose], t_eval=grid, args=(cl, v))",
+     "y0 must be a sequence even with one compartment. The state is an AMOUNT, "
+     "so divide by volume to get a concentration."),
+
+    ("scipy", "t_eval", "solve_ivp(..., t_eval=np.linspace(0, 24, 97))",
+     "Where the solution is reported. Without it you get the solver's own "
+     "unevenly spaced steps.",
+     "t_eval=T_GRID",
+     "It controls OUTPUT, not accuracy. Accuracy is rtol and atol, whose "
+     "defaults ask for about three correct digits. For PK work pass "
+     "rtol=1e-8, atol=1e-10."),
+
+    ("scipy", "max_step", "solve_ivp(..., max_step=0.05)",
+     "Caps the step size so the solver cannot stride over something that "
+     "happens suddenly, such as an infusion stopping.",
+     "solve_ivp(rhs_inf, (0, 12), [0.0], max_step=0.05, ...)",
+     "An adaptive solver picks its step from how smooth the solution has been, "
+     "and a discontinuity is exactly what that history cannot warn it about. "
+     "It fails silently, with success still True."),
+
+    ("scipy", "sol.y", "sol.y[0]",
+     "The solution, one ROW per state and one column per reported time. sol.t "
+     "holds the times and sol.success says whether it worked.",
+     "conc = sol.y[0] / V_L",
+     "sol.y is always two dimensional, even for one compartment, so sol.y[0] "
+     "is how you get a 1D array out."),
 ]
 
 

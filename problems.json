@@ -98,5 +98,55 @@
     "est": "20-30 min",
     "path": "problems/week02/w2d5_matplotlib_panels_semilog.ipynb",
     "solution": "solutions/week02/w2d5_matplotlib_panels_semilog_solution.ipynb"
+  },
+  {
+    "id": "W3D1",
+    "week": 3,
+    "day": 1,
+    "title": "Comparing two groups when the data is skewed",
+    "topic": "scipy.stats: t-test, Welch, Mann-Whitney, and choosing between them",
+    "est": "20-30 min",
+    "path": "problems/week03/w3d1_scipy_group_comparison.ipynb",
+    "solution": "solutions/week03/w3d1_scipy_group_comparison_solution.ipynb"
+  },
+  {
+    "id": "W3D2",
+    "week": 3,
+    "day": 2,
+    "title": "AUC is lognormal, so report the geometric mean",
+    "topic": "scipy.stats: lognormal data, geometric mean and CV, normality testing",
+    "est": "20-30 min",
+    "path": "problems/week03/w3d2_scipy_geometric_stats.ipynb",
+    "solution": "solutions/week03/w3d2_scipy_geometric_stats_solution.ipynb"
+  },
+  {
+    "id": "W3D3",
+    "week": 3,
+    "day": 3,
+    "title": "Fitting a decay curve, and how sure you are of the parameters",
+    "topic": "scipy.optimize: curve_fit, starting values, parameter standard errors",
+    "est": "20-30 min",
+    "path": "problems/week03/w3d3_scipy_curve_fit.ipynb",
+    "solution": "solutions/week03/w3d3_scipy_curve_fit_solution.ipynb"
+  },
+  {
+    "id": "W3D4",
+    "week": 3,
+    "day": 4,
+    "title": "Solving the compartment model as an ODE, and surviving a discontinuity",
+    "topic": "scipy.integrate: solve_ivp, t_eval, checking against an analytic solution",
+    "est": "20-30 min",
+    "path": "problems/week03/w3d4_scipy_solve_ivp.ipynb",
+    "solution": "solutions/week03/w3d4_scipy_solve_ivp_solution.ipynb"
+  },
+  {
+    "id": "W3D5",
+    "week": 3,
+    "day": 5,
+    "title": "Emax and sigmoid Emax: fitting a concentration response curve",
+    "topic": "scipy.optimize: Emax models, bounds, and comparing nested fits",
+    "est": "20-30 min",
+    "path": "problems/week03/w3d5_scipy_emax_hill.ipynb",
+    "solution": "solutions/week03/w3d5_scipy_emax_hill_solution.ipynb"
   }
 ]

@@ -520,6 +520,6 @@ def _part_c():
 # Functions this problem introduces. Keys must exist in tools/function_catalog.py.
 FUNCTIONS = [
     ".transform",
-    ".all",
+    ".all / .any",
     "ignore_index",
 ]

@@ -178,7 +178,50 @@ CASES = [
                   "ax2.set_xlabel('t'); ax2.set_ylabel('c'); ax2.set_title('x')",
      "one per dose group"),
     ("W2D5", "c", "ax2.set_yscale('linear')", "not logarithmic"),
+# ------------------------------------------------------------ week 3
+    ("W3D1", "a", "desc['SD'] = [round(float(np.std(vehicle)),2), round(float(np.std(treated)),2)]",
+     "n in the denominator"),
+    ("W3D1", "b", "t_welch = t_student; p_welch = p_student", "equal_var=False was not passed"),
+    ("W3D1", "b", "_r = stats.ttest_ind(treated, vehicle)\n"
+                  "t_student = float(_r.statistic); p_student = float(_r.pvalue)",
+     "sign flipped"),
+    ("W3D1", "c", "_r = stats.mannwhitneyu(vehicle, treated, alternative='greater')\n"
+                  "p_mw = float(_r.pvalue)", "one sided"),
+    ("W3D1", "c", "_r = stats.ttest_ind(vehicle, treated, equal_var=False)\n"
+                  "t_log = float(_r.statistic)", "test on the raw volumes"),
+
+    ("W3D2", "a", "arith_sd = float(np.std(auc))", "n in the denominator"),
+    ("W3D2", "a", "arith_cv = arith_sd / arith_mean", "fraction"),
+    ("W3D2", "b", "geo_mean = float(np.mean(np.log(auc)))", "still on the log scale"),
+    ("W3D2", "b", "geo_cv = 100.0 * sd_log", "needs the exponential"),
+    ("W3D2", "c", "use_log = False", "should be True here"),
+
+    ("W3D3", "a", "def _swapped(t, k, c0):\n"
+                  "    return c0 * np.exp(-k * t)\n"
+                  "popt, pcov = curve_fit(_swapped, obs['TIME_H'].to_numpy(),\n"
+                  "    obs['CONC_MG_L'].to_numpy(), p0=[0.1, 50.0])",
+     "other way round"),
+    ("W3D3", "b", "se_c0 = float(np.diag(pcov)[0])", "variance, not the standard error"),
+    ("W3D3", "b", "c0_hat = float(popt[1]); k_hat = float(popt[0])", "rate constant"),
+    ("W3D3", "c", "t_half = 1.0 / k_hat", "1/k"),
+    ("W3D3", "c", "rmse = float(np.sum((obs['CONC_MG_L'].to_numpy() - pred) ** 2))",
+     "sum of squared residuals"),
+
+    ("W3D4", "a", "conc_num = sol.y[0]", "still an AMOUNT"),
+    ("W3D4", "a", "sol = solve_ivp(rhs, (0.0, 24.0), [DOSE_MG], t_eval=T_GRID,\n"
+                  "    args=(CL_L_H, V_L))\nconc_num = sol.y[0] / V_L", "default tolerances"),
+    ("W3D4", "b", "max_abs_err = float(np.max(conc_num - conc_exact))\n"
+                  "max_abs_err = -abs(max_abs_err)", "negative"),
+    ("W3D4", "c", "conc_inf = sol_inf.y[0]", "amount in mg"),
+
+    ("W3D5", "a", "agg = assay.assign(MEAN_PCT=assay['INHIB_PCT'], SD_PCT=0.0, N=1)\n"
+                  "agg = agg[['CONC_UM','MEAN_PCT','SD_PCT','N']]", "one row per well"),
+    ("W3D5", "b", "emax1 = float(emax1) * 2.0", "not the fitted ceiling"),
+    ("W3D5", "c", "hill = 1.0", "never moved"),
+    ("W3D5", "c", "def sigmoid_model(c, emax, ec50, h):\n"
+                  "    return emax * c ** h / (ec50 + c ** h)", "h = 1 should give"),
 ]
+
 
 
 
