@@ -1,0 +1,6 @@
+# Only needed if you want to rebuild the notebooks from tools/specs/.
+# Working the problems does not need any of this.
+
+nbformat>=5.9
+nbclient>=0.9
+ipykernel>=6.25

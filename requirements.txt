@@ -1,0 +1,14 @@
+# Everything the problem notebooks need, plus JupyterLab to run them in.
+# Installed for you by start.py. You should not need to run pip yourself.
+#
+# PyTorch is listed separately in requirements-torch.txt, because it is the
+# one large download and only week 6 uses it.
+
+numpy>=1.24
+pandas>=2.0
+matplotlib>=3.7
+scipy>=1.10
+scikit-learn>=1.3
+scikit-image>=0.21
+opencv-python-headless>=4.8
+jupyterlab>=4.0

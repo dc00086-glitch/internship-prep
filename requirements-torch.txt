@@ -1,0 +1,7 @@
+# PyTorch, used by week 6 only. About 200 MB as a CPU only build.
+#
+# start.py installs this from https://download.pytorch.org/whl/cpu, which
+# gives a CPU build on Windows, macOS and Linux. The plain PyPI version on
+# Linux drags in about 2 GB of CUDA libraries that nothing here uses.
+
+torch>=2.0
