@@ -441,7 +441,7 @@ def _part_a():
     except Exception as exc:
         return "`rhs` raised %s when called as rhs(t, y, cl, v)." % type(exc).__name__
     if probe is None:
-        return "`rhs` returns None. Replace the # YOUR CODE line."
+        raise _Todo("`rhs` returns None. Replace the # YOUR CODE line.")
     arr = _as_array(probe)
     if arr is None or arr.ndim == 0:
         return ("`rhs` should return a SEQUENCE of derivatives, one per state, so a list "
@@ -527,7 +527,7 @@ def _part_c():
         return ("`rhs_inf` raised %s when called as rhs_inf(t, y, cl, v, rate, t_off)."
                 % type(exc).__name__)
     if on is None or off is None:
-        return "`rhs_inf` returns None. Replace the # YOUR CODE line."
+        raise _Todo("`rhs_inf` returns None. Replace the # YOUR CODE line.")
     on_v = float(_np.ravel(_as_array(on))[0])
     off_v = float(_np.ravel(_as_array(off))[0])
     if not _np.isclose(on_v, 250.0):

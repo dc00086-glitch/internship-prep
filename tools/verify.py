@@ -39,12 +39,16 @@ def parse_results(text):
 
 
 def main():
+    # Optional filter: python3 tools/verify.py week07
+    only = sys.argv[1] if len(sys.argv) > 1 else None
     failures = []
     for kind in ("solutions", "problems", "reference"):
         if not (ROOT / kind).exists():
             continue
         for path in sorted((ROOT / kind).rglob("*.ipynb")):
             rel = path.relative_to(ROOT)
+            if only and only not in str(rel):
+                continue
             try:
                 text = run_notebook(path)
             except Exception as exc:
@@ -88,7 +92,8 @@ def main():
         for f in failures:
             print("  - " + f)
         return 1
-    print("All notebooks execute cleanly. All solutions pass their own check().")
+    scope = ("matching %r" % only) if only else "All"
+    print("%s notebooks execute cleanly. All solutions pass their own check()." % scope)
     return 0
 
 

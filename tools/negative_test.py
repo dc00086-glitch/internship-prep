@@ -293,6 +293,142 @@ CASES = [
     ("W5D5", "c", "loadings = pd.DataFrame(pca.components_.T, columns=['PC%d' % (i+1)\n"
                   "    for i in range(pca.components_.shape[0])], index=FEATURES)", "transposed"),
     ("W5D5", "c", "pc1_top3 = pc1_top3[::-1]", "ascending order"),
+
+    ("W6D1", "a", "t_tensor = torch.tensor(time_np, dtype=torch.float32)", "float64"),
+    ("W6D1", "a", "t_tensor = time_np", "torch Tensor"),
+    ("W6D1", "a", "dtype_default = torch.tensor([1, 2, 3], dtype=torch.float64).dtype",
+     "a dtype was passed"),
+    ("W6D1", "b", "cmax = c_tensor.max()", "still a tensor"),
+    ("W6D1", "b", "tmax = float(torch.argmax(c_tensor).item())", "index of the peak"),
+    ("W6D1", "b", "mask = c_tensor < LLOQ", "inverted"),
+    ("W6D1", "b", "c_measurable = c_tensor", "still has every sample"),
+    ("W6D1", "c", "has_grad_fn_plain = True", "should be False"),
+    ("W6D1", "c", "shares_memory = False", "should be True"),
+
+    ("W6D2", "a", "k_a = torch.tensor(K_START, dtype=torch.float64)", "requires_grad"),
+    ("W6D2", "a", "loss_a = loss_a / 9.0", "MEAN squared residual"),
+    ("W6D2", "a", "grad_auto = -grad_auto", "wrong sign"),
+    ("W6D2", "a", "grad_manual = grad_manual / 2.0", "half the right value"),
+    ("W6D2", "b", "grad_k = grad_v", "swapped"),
+    ("W6D2", "b", "fd_v = (loss_at(V_START + FD_STEP, K_START)"
+                  " - loss_at(V_START - FD_STEP, K_START)) / FD_STEP", "twice the gradient"),
+    ("W6D2", "c", "grad_twice = grad_once", "did not accumulate"),
+    ("W6D2", "c", "grad_after_zero = 3.0 * grad_once", "never cleared"),
+    ("W6D2", "c", "second_backward_error = False", "should be True"),
+
+    ("W6D3", "a", "loss_after_small = loss_before", "no step was taken"),
+    ("W6D3", "a", "loss_after_big = loss_after_small", "LR_BIG was not used"),
+    ("W6D3", "a", "inplace_error = False", "should be True"),
+    ("W6D3", "b", "loss_hist = loss_hist[:100]", "N_ITER"),
+    ("W6D3", "b", "v_hat = float(np.log(v_hat))", "still on the log scale"),
+    ("W6D3", "b", "v_scipy = v_scipy * 1.001", "close but not converged"),
+    ("W6D3", "c", "v_big = v_hat", "sensible fitted volume"),
+    ("W6D3", "c", "loss_big = zero_model_loss * 2.0", "zero model loss"),
+    ("W6D3", "c", "first_nan_index = 0", "nothing is"),
+
+    ("W6D4", "a", "n_params = 1", "should be 2"),
+    ("W6D4", "a", "param_names = ['log_v']", "log_k"),
+    ("W6D4", "a", "loss_start = loss_start / 9.0", "mean, not the sum"),
+    ("W6D4", "a", "class OneCompartmentIV(torch.nn.Module):\n"
+                  "    def __init__(self, v_init, k_init):\n"
+                  "        super().__init__()\n"
+                  "        self.log_v = torch.tensor(np.log(v_init), dtype=torch.float64)\n"
+                  "        self.log_k = torch.tensor(np.log(k_init), dtype=torch.float64)\n"
+                  "    def forward(self, t):\n"
+                  "        return (DOSE / torch.exp(self.log_v)) * torch.exp("
+                  "-torch.exp(self.log_k) * t)", "torch.nn.Parameter"),
+    ("W6D4", "b", "loss_hist_sgd = list(loss_hist_adam)", "plain SGD does"),
+    ("W6D4", "b", "v_hat = float(np.log(v_hat))", "still on the log scale"),
+    ("W6D4", "c", "cl_hat = k_hat / v_hat", "k divided by V"),
+    ("W6D4", "c", "t_half_hat = 1.0 / k_hat", "mean residence time"),
+    ("W6D4", "c", "resid_sd = float(np.sqrt(((model(t_obs) - c_obs) ** 2)"
+                  ".sum().item() / t_obs.numel()))", "divides the SSE by n"),
+
+    ("W6D5", "a", "subject_bias = (c_obs - model_pool(t_obs)).mean(dim=0).detach().numpy()",
+     "one entry per TIME"),
+    ("W6D5", "a", "subject_bias = -subject_bias", "sign flipped"),
+    ("W6D5", "a", "sse_pool = sse_ind", "individual fit loss"),
+    ("W6D5", "b", "v_ind = np.full(N_SUBJ, v_pool)", "pooled volume"),
+    ("W6D5", "b", "sse_ind = sse_pool", "is the pooled loss"),
+    ("W6D5", "c", "v_gm = float(np.mean(v_ind))", "arithmetic mean"),
+    ("W6D5", "c", "cv_v_pct = cv_v_pct / 100.0", "fraction"),
+    ("W6D5", "c", "sse_ratio = 1.0 / sse_ratio", "upside down"),
+
+    ("W7D1", "a", "tmax = float(np.argmax(conc))", "argmax gives a position"),
+    ("W7D1", "a", "auc_linear = auc_linlog", "lin-up/log-down value"),
+    ("W7D1", "b", "auc_linlog = auc_linear", "log form was never applied"),
+    ("W7D1", "b", "pct_diff = 100.0 * (auc_linear - auc_linlog) / auc_linlog",
+     "other way round"),
+    ("W7D1", "c", "auc_0_12 = auc_linlog", "window was not applied"),
+    ("W7D1", "c", "frac_in_12h = frac_in_12h * 100.0", "is a percent"),
+
+    ("W7D2", "a", "lambda_z = -lambda_z", "is negative"),
+    ("W7D2", "a", "t_half = 1.0 / lambda_z", "factor of ln(2)"),
+    ("W7D2", "b", "auc_inf = AUC_LAST", "no tail was added"),
+    ("W7D2", "b", "pct_extrap = 100.0 * (auc_inf - AUC_LAST) / AUC_LAST",
+     "denominator is auc_inf"),
+    ("W7D2", "c", "cl_f = DOSE_MG / AUC_LAST", "used AUC_LAST"),
+    ("W7D2", "c", "vz_f = cl_f * lambda_z", "multiplied by lambda_z"),
+
+    ("W7D3", "a", "rhs = lambda t, y, ka, v, cl: [-ka * y[0], -ka * y[0] - (cl / v) * y[1]]",
+     "absorption sign"),
+    ("W7D3", "b", "rmse = rmse ** 2", "mean squared error"),
+    ("W7D3", "c", "t_half_model = 1.0 / (cl_hat / v_hat)", "factor of ln(2)"),
+    ("W7D3", "c", "cl_ratio = 1.0 / cl_ratio", "other way up"),
+
+    ("W7D4", "a", "popt2 = popt2[::-1]", "does not match the fit"),
+    ("W7D4", "b", "rmse1 = rmse1 ** 2", "mean squared error"),
+    ("W7D4", "c", "vss = float(popt2[1])", "V1 alone"),
+    ("W7D4", "c", "auc_bias = -auc_bias", "sign the wrong way round"),
+
+    ("W7D5", "b", "cmax_first = cmax_ss", "steady state peak"),
+    ("W7D5", "b", "r_sim = 1.0 / r_sim", "other way up"),
+    ("W7D5", "c", "cavg_ss = DOSE_MG / CL_F", "left out the dosing interval"),
+    ("W7D5", "c", "t_to_90pct = float(np.argmax(conc >= 0.9 * cmax_ss))", "is the index"),
+
+    ("W8D1", "a", "e_falling = float(np.interp(C_PROBE, c_obs[peak_idx:], e_obs[peak_idx:]))",
+     "decreasing array"),
+    ("W8D1", "a", "tmax_c = float(peak_idx)", "index of the peak"),
+    ("W8D1", "b", "resid_early = -resid_early", "should be negative"),
+    ("W8D1", "b", "sse_direct = sse_link", "link model"),
+    ("W8D1", "c", "emax_hat = emax_direct", "direct fit"),
+    ("W8D1", "c", "sse_link = sse_direct", "direct fit"),
+
+    ("W8D2", "a", "kin = R_BASE / KOUT", "divided by KOUT"),
+    ("W8D2", "a", "pct_suppression = 100.0 * nadir / R_BASE", "level remaining"),
+    ("W8D2", "a", "t_nadir = float(np.argmin(r_single))", "an index, not a time"),
+    ("W8D2", "b", "t_above_by_dose = t_above_by_dose / DT", "count of grid points"),
+    ("W8D2", "b", "t_link_by_dose = t_nadir_by_dose.copy()", "same model"),
+    ("W8D2", "c", "auec = -auec", "wrong sign"),
+    ("W8D2", "c", "t_nadir_fast = t_nadir", "did not reach the solver"),
+
+    ("W8D3", "a", "cl_gm = cl_mean", "arithmetic mean"),
+    ("W8D3", "a", "cl_cv_pct = float(100.0 * np.std(np.log(cl_i), ddof=1))", "approximation"),
+    ("W8D3", "a", "mean_over_median_theory = float(np.exp(OMEGA_CL ** 2))", "division by 2"),
+    ("W8D3", "b", "auc_p5, auc_p95 = auc_p95, auc_p5", "wrong way round"),
+    ("W8D3", "b", "cmax_i = np.log(KA / (cl_i / v_i)) / (KA - cl_i / v_i)", "peak TIMES"),
+    ("W8D3", "c", "cv_hat_12 = cv_hat_12[:50]", "N_STUDIES"),
+    ("W8D3", "c", "cv12_hi = cv120_hi", "percentile it should be"),
+
+    ("W8D4", "a", "nm = nm.sort_values(['ID', 'TIME', 'EVID']).reset_index(drop=True)\n"
+                  "first_evid_per_id = nm.groupby('ID')['EVID'].first().values",
+     "ahead of the dose"),
+    ("W8D4", "a", "nm = nm[['TIME', 'ID', 'AMT', 'DV', 'EVID', 'MDV', 'CMT']]",
+     "wrong order"),
+    ("W8D4", "b", "n_blq = n_mdv", "including the dosing records"),
+    ("W8D4", "b", "n_mdv = n_blq", "count the dosing rows too"),
+    ("W8D4", "c", "auc_dn_low = float(np.mean(nca.loc[nca['AMT'] == 50.0, 'AUC_DN'].values))",
+     "arithmetic mean"),
+    ("W8D4", "c", "auc_dn_ratio = 1.0 / auc_dn_ratio", "upside down"),
+
+    ("W8D5", "a", "c_typ = (DOSE_MID * KA / (V_POP * (KA - k_typ))"
+                  " * (np.exp(-k_typ * t_grid) - np.exp(-KA * t_grid)))", "single dose profile"),
+    ("W8D5", "a", "cavg_ss = cavg_ss * TAU", "area, not the average"),
+    ("W8D5", "b", "p_tox = 1.0 - p_tox", "fraction within the limit"),
+    ("W8D5", "b", "p_success = p_eff * (1.0 - p_tox)", "independent"),
+    ("W8D5", "b", "cmax_i = cmax_i[:10]", "patients"),
+    ("W8D5", "c", "best_dose = float(np.argmax(p_success_by_dose))", "index of the best"),
+    ("W8D5", "c", "p_eff_by_dose = p_eff_by_dose[::-1]", "reverse dose order"),
 ]
 
 
@@ -343,11 +479,14 @@ def run_case(spec, check_src, part, break_code):
 
 
 def main():
+    wanted = [a.upper() for a in sys.argv[1:]]
+    cases = [c for c in CASES if not wanted or c[0] in wanted]
     specs = load_specs()
-    sources = {pid: check_cell_source(spec) for pid, spec in specs.items()}
+    needed = sorted({c[0] for c in cases})
+    sources = {pid: check_cell_source(specs[pid]) for pid in needed}
 
     bad = []
-    for pid, part, break_code, expect in CASES:
+    for pid, part, break_code, expect in cases:
         spec = specs[pid]
         try:
             kind, msg = run_case(spec, sources[pid], part, break_code)
@@ -367,11 +506,11 @@ def main():
 
     print("")
     if bad:
-        print("PROBLEMS (%d of %d cases):" % (len(bad), len(CASES)))
+        print("PROBLEMS (%d of %d cases):" % (len(bad), len(cases)))
         for b in bad:
             print("  - " + b)
         return 1
-    print("All %d wrong answers were caught with a useful message." % len(CASES))
+    print("All %d wrong answers were caught with a useful message." % len(cases))
     return 0
 
 

@@ -1018,6 +1018,560 @@ ENTRIES = [
      "The sign of a whole component is arbitrary, so only read signs RELATIVE "
      "to each other within one row. Sort by absolute loading to find the "
      "dominant features."),
+
+    # ------------------------------------------------------- numpy, weeks 6-8
+    ("numpy", "np.diff", "np.diff(a)",
+     "The gaps between consecutive entries. On n values it returns n-1 of "
+     "them.",
+     "np.diff([0, 0.5, 1, 2])  gives  [0.5, 0.5, 1.0]",
+     "The result is one element SHORTER than the input, which is what makes a "
+     "trapezoid sum line up: n-1 widths for n points. Index errors here are "
+     "almost always an off by one between a[1:] and a[:-1]."),
+
+    ("numpy", "np.errstate", "with np.errstate(divide=\'ignore\'):",
+     "Silences a numpy warning inside the block, for a case where you know "
+     "the warning is harmless.",
+     "with np.errstate(divide=\'ignore\'): logc = np.log(conc)",
+     "Use it only where you have already handled the bad values, for example "
+     "a log of zero you are about to mask out. Silencing a warning you have "
+     "not understood is how a NaN gets into a final number."),
+
+    ("numpy", "np.interp", "np.interp(x_new, x, y)",
+     "Straight line interpolation: reads y at x_new from the points you give "
+     "it.",
+     "np.interp(1.2, [1.0, 2.0], [10.0, 20.0])  gives  12.0",
+     "It REQUIRES x to be increasing and does not check. Hand it a falling "
+     "concentration curve and you get numbers back, silently wrong ones. "
+     "Reverse both arrays together first."),
+
+    ("numpy", "np.percentile", "np.percentile(a, [5, 50, 95])",
+     "The value below which that percentage of the data falls. The honest "
+     "summary of a skewed distribution.",
+     "np.percentile(auc, [5, 95])  gives  [14.9, 40.5]",
+     "For a skewed distribution the mean plus or minus two SD can fall below "
+     "the 2.5th percentile, or below zero. Percentiles cannot."),
+
+    ("numpy", "np.argmax on booleans", "int(np.argmax(flags))",
+     "The position of the FIRST True in a boolean array, because True counts "
+     "as 1 and argmax stops at the first maximum.",
+     "np.argmax(np.isnan(losses))  gives  5",
+     "It returns 0 when nothing is True, which is indistinguishable from a "
+     "True in position 0. Always pair it with flags.any()."),
+
+    ("numpy", "np.where first index", "int(np.where(flags)[0][0])",
+     "The index of the first True, the explicit way. np.where returns a tuple "
+     "of arrays, hence the two subscripts.",
+     "np.where(r >= 0.9 * baseline)[0][0]  gives  543",
+     "It raises IndexError when nothing matches, which is better than argmax "
+     "quietly returning 0. Check the size first, or catch it."),
+
+    ("numpy", "rng.lognormal", "rng.lognormal(mean_of_logs, sd_of_logs, size=n)",
+     "Draws from a lognormal distribution: the LOGS are normal with that mean "
+     "and SD.",
+     "cl = 4.2 * rng.lognormal(0.0, 0.30, size=500)",
+     "Both arguments describe the logs, so pass 0.0 as the mean and multiply "
+     "by the typical value outside. Passing 4.2 as the first argument gives a "
+     "median of exp(4.2), which is 67, and no error."),
+
+    ("numpy", "None axis indexing", "a[:, None], t[None, :]",
+     "Inserts a length one axis so two arrays broadcast into a grid. "
+     "a[:, None] * t[None, :] on n and m values gives an n by m matrix.",
+     "conc = coef[:, None] * np.exp(-k[:, None] * t[None, :])",
+     "Getting the axes the wrong way round does not raise, it gives you a "
+     "square matrix of nonsense when n and m happen to differ, or silently "
+     "the wrong orientation when they do not. Print .shape."),
+
+    ("numpy", "boolean mean as a fraction", "(x >= target).mean()",
+     "The fraction of entries satisfying a condition, because the mean of "
+     "True and False is the proportion of True.",
+     "(auc >= 20.0).mean()  gives  0.72",
+     "Combine conditions with & and brackets, never with the word and, which "
+     "tries to turn a whole array into one True or False and raises."),
+
+    # ------------------------------------------------------ pandas, weeks 6-8
+    ("pandas", "sort_values mixed ascending", "df.sort_values(cols, ascending=[True, True, False])",
+     "Sorts by several columns, each in its own direction. One entry in the "
+     "list per column.",
+     'nm.sort_values(["ID", "TIME", "EVID"], ascending=[True, True, False])',
+     "In a dosing dataset this is the difference between a dose that is given "
+     "before the time zero sample and one that is given after it. The second "
+     "runs without complaint and fits the wrong thing."),
+
+    ("pandas", "groupby apply several outputs", "df.groupby(key)[cols].apply(fn)",
+     "Runs your function on each group and builds a DataFrame from the Series "
+     "it returns. The way to get several numbers per group.",
+     'obs.groupby("ID")[["TIME", "DV"]].apply(nca_one)',
+     "Select the columns before .apply, as shown. Without the selection, "
+     "newer pandas passes the grouping column into your function and warns "
+     "about it, and the same line then behaves differently on two versions."),
+
+    # ------------------------------------------------------- scipy, weeks 6-8
+    ("scipy", "curve_fit bounds", "curve_fit(f, x, y, p0=[...], bounds=([lo], [hi]))",
+     "Restricts the search to parameter values that mean something. Two "
+     "sequences, lower bounds then upper.",
+     "curve_fit(emax, c, e, p0=[20.0, 1.0], bounds=([0.0, 1e-3], [200.0, 100.0]))",
+     "Bound a concentration or a rate constant away from zero rather than at "
+     "zero, since the model usually divides by it. If a fitted value comes "
+     "back exactly ON a bound, the fit did not converge, it stopped."),
+
+    ("scipy", "finite differences", "(f(p + h) - f(p - h)) / (2 * h)",
+     "The numerical derivative. Two extra evaluations per parameter, and you "
+     "have to choose h.",
+     "(loss(v + 1e-6) - loss(v - 1e-6)) / 2e-6  gives  -0.2011",
+     "Too large an h and the approximation is wrong, too small and floating "
+     "point cancellation eats the answer. This is what curve_fit does "
+     "internally, and what autograd replaces with exact derivatives."),
+
+    # ------------------------------------------------------------------ torch
+    ("torch", "torch.tensor", "torch.tensor(data, dtype=torch.float64)",
+     "Makes a tensor, which is a numpy array that can also record how it was "
+     "computed.",
+     "t = torch.tensor(time_np, dtype=torch.float64)",
+     "Always say the dtype. torch defaults to float32, and INFERS an integer "
+     "type from a list of Python integers, on which gradients are impossible "
+     "and division behaves differently."),
+
+    ("torch", "tensor dtypes", "t.dtype, torch.float64, torch.int64",
+     "What kind of number the tensor holds. float64 matches numpy, float32 is "
+     "the torch default, int64 is what a list of integers infers.",
+     "torch.tensor([1, 2, 3]).dtype  gives  torch.int64",
+     "An integer parameter tensor cannot carry a gradient, and the error you "
+     "get says something else entirely. For PK work use float64 everywhere: "
+     "float32 gives about seven digits, which an optimiser can run out of."),
+
+    ("torch", ".item()", "t.item()",
+     "Pulls a single number out of a one element tensor as an ordinary Python "
+     "float.",
+     "loss.item()  gives  0.22084644423969818",
+     "Use it the moment a number leaves torch for printing, comparison or a "
+     "list. A one element tensor prints as tensor(0.2208, dtype=...) and "
+     "compares in ways that surprise people."),
+
+    ("torch", "tensor to numpy", "t.numpy(), t.detach().numpy()",
+     "Hands you a numpy VIEW of the same memory. No copy is made.",
+     "arr = c_tensor.detach().numpy()",
+     "Change either one and both change. Use .numpy().copy() for a snapshot. "
+     "On a tensor that tracks gradients .numpy() refuses outright, and "
+     ".detach() first is the fix."),
+
+    ("torch", "requires_grad", "torch.tensor(x, requires_grad=True)",
+     "Tells torch to record every operation involving this tensor, so it can "
+     "be differentiated later. Parameters need it, data does not.",
+     "k = torch.tensor(0.15, dtype=torch.float64, requires_grad=True)",
+     "You can see it working: anything computed from a tracked tensor has a "
+     "grad_fn, and anything else has grad_fn of None. That one attribute is "
+     "the whole difference between a tensor and an array."),
+
+    ("torch", "backward", "loss.backward()",
+     "Walks the recorded graph from the loss back to every tracked tensor, "
+     "applying the chain rule, and deposits the result in each .grad.",
+     "loss.backward()  then read  k.grad",
+     "It wants a SCALAR, so reduce with .sum() or .mean() first. It also "
+     "frees the graph afterwards, so a second call on the same loss raises. "
+     "Recompute the loss instead of passing retain_graph=True."),
+
+    ("torch", "tensor .grad", "p.grad, p.grad.item()",
+     "Where backward() leaves the derivative of the loss with respect to that "
+     "tensor. None until the first backward pass.",
+     "k.grad.item()  gives  12.358762098200062",
+     "Read it straight after the backward pass that produced it. It is a "
+     "tensor that later passes write into, so a reference you saved earlier "
+     "will have changed under you."),
+
+    ("torch", "gradient accumulation", "p.grad = None  or  p.grad.zero_()",
+     "Clears the gradient. Necessary because backward() ADDS to .grad rather "
+     "than replacing it.",
+     "for i in range(n): p.grad = None; ... loss.backward()",
+     "Forget it and every step is larger than the last, so the loss explodes "
+     "after one good iteration and the symptom points nowhere near the cause. "
+     "p.grad = None always works, .zero_() fails on the first pass."),
+
+    ("torch", "torch.no_grad", "with torch.no_grad(): ...",
+     "Switches the recording off inside the block. For anything you are not "
+     "differentiating: predictions, a validation loss, the parameter update.",
+     "with torch.no_grad(): p -= lr * p.grad",
+     "The update has to be inside it, or torch raises a leaf Variable that "
+     "requires grad is being used in an in place operation. It is also what "
+     "lets .numpy() work on a result computed from parameters."),
+
+    ("torch", "gradient descent loop", "zero grad, forward, backward, step",
+     "The whole of fitting, in four lines: clear the gradients, compute the "
+     "loss, differentiate it, move the parameters downhill.",
+     "p.grad = None; loss = f(p); loss.backward();\n"
+     "with torch.no_grad(): p -= lr * p.grad",
+     "The gradient gives the direction and says nothing about the distance. "
+     "Everything that goes wrong in fitting is visible in these four lines."),
+
+    ("torch", "learning rate", "lr, the step size",
+     "How far to move along the gradient each iteration.",
+     "torch.optim.Adam(model.parameters(), lr=0.05)",
+     "Too small and it crawls, too large and it steps past the minimum to "
+     "somewhere worse and the next step is larger still. A diverging fit does "
+     "not always produce a NaN: it can settle on a flat part of the surface "
+     "with absurd parameters and look converged."),
+
+    ("torch", "log parameters", "carry log_v, use torch.exp(log_v)",
+     "Fitting on the log scale, so a fixed step is a fixed percentage change "
+     "and the parameter cannot go negative.",
+     "v = torch.exp(log_v)  inside forward",
+     "This is the standard fix when parameters are on wildly different "
+     "scales, which in PK they always are. Remember to exponentiate before "
+     "reporting anything."),
+
+    ("torch", "torch.nn.Module", "class M(torch.nn.Module): __init__, forward",
+     "A container that knows what its parameters are. You create them in "
+     "__init__ and define the arithmetic in forward.",
+     "class OneCompartmentIV(torch.nn.Module): ...",
+     "super().__init__() comes first in __init__, or assigning a parameter "
+     "raises. Call the model as model(t), not model.forward(t), so that the "
+     "hooks torch wraps around forward still run."),
+
+    ("torch", "torch.nn.Parameter", "torch.nn.Parameter(torch.tensor(x, dtype=torch.float64))",
+     "A tensor that sets requires_grad for you and registers itself with the "
+     "Module it is assigned to, so model.parameters() can find it.",
+     "self.log_v = torch.nn.Parameter(torch.tensor(np.log(35.0), dtype=torch.float64))",
+     "A plain tensor assigned to self.something is INVISIBLE to the "
+     "optimiser. The fit runs, and that parameter never moves, and nothing "
+     "warns you."),
+
+    ("torch", "torch.optim", "torch.optim.Adam(model.parameters(), lr=0.05)",
+     "An optimiser: it holds the parameters and the update rule. SGD with "
+     "nothing else set is plain gradient descent; Adam adapts a step size per "
+     "parameter.",
+     "opt = torch.optim.Adam(model.parameters(), lr=0.05)",
+     "Adam survives badly scaled parameters that defeat SGD at the same "
+     "learning rate, which is why it is the default choice. It is not magic: "
+     "it still diverges if the rate is far too large."),
+
+    ("torch", "zero_grad and step", "opt.zero_grad(); ...; opt.step()",
+     "The optimiser versions of clearing every gradient and applying every "
+     "update, for all the parameters it was given.",
+     "opt.zero_grad(); loss = ...; loss.backward(); opt.step()",
+     "The order matters and never changes. step() after backward(), "
+     "zero_grad() before the next forward pass."),
+
+    ("torch", "state_dict", "model.state_dict()",
+     "A dictionary of the model's current parameter values, for saving a fit "
+     "or inspecting it.",
+     'list(model.state_dict().keys())  gives  ["log_v", "log_k"]',
+     "It holds the values on whatever scale the model carries them, so log "
+     "parameters come out as logs. Exponentiate before anybody reads them."),
+
+    ("torch", "torch.full", "torch.full((n,), value, dtype=torch.float64)",
+     "An array of n copies of one value. The usual way to start a vector of "
+     "per subject parameters at a common guess.",
+     "torch.nn.Parameter(torch.full((12,), float(np.log(30.0)), dtype=torch.float64))",
+     "The shape argument is a tuple, so (n,) with the comma. torch.full(n, ...) "
+     "without it raises."),
+
+    ("torch", "parameter vectors", "nn.Parameter of shape (n_subjects,)",
+     "One parameter per subject, fitted all at once. backward() fills in "
+     "every element and the optimiser steps every element.",
+     "self.log_v = nn.Parameter(torch.full((12,), np.log(30.0), dtype=torch.float64))",
+     "There is no loop over subjects anywhere, and the same code handles a "
+     "hundred and twenty subjects. Check .shape on the predictions before "
+     "anything else: a wrong axis gives a square matrix, not an error."),
+
+    # --------------------------------------------------------------- PK and PD
+    ("PK", "linear trapezoid", "sum(0.5 * (c[1:] + c[:-1]) * np.diff(t))",
+     "Area under the curve by joining the samples with straight lines. The "
+     "default for AUC up to the last measurable sample.",
+     "auc = float(np.sum(0.5 * (c[1:] + c[:-1]) * np.diff(t)))",
+     "On a declining log linear curve straight lines sit ABOVE the true "
+     "curve, so the linear rule overestimates the tail. The wider the "
+     "sampling gaps, the worse it gets."),
+
+    ("PK", "linear up log down", "linear while rising, log trapezoid while falling",
+     "The regulatory default: straight lines up to Tmax, then the log "
+     "trapezoid, which follows an exponential decline exactly.",
+     "c1 * dt if c2 >= c1 else (c1 - c2) * dt / np.log(c1 / c2)",
+     "The log form divides by log(c1 / c2), so it is undefined when two "
+     "consecutive values are equal and impossible when either is zero. Fall "
+     "back to the linear rule for those intervals."),
+
+    ("PK", "partial AUC", "AUC over a stated window, such as 0 to 12 h",
+     "The exposure over part of the interval, used when only part of it "
+     "matters clinically, or to compare two formulations over a window.",
+     "auc_0_12 = trapezoid over the samples up to 12 h",
+     "If the window boundary is not a sampling time you have to interpolate "
+     "to it, and say which way: linearly in concentration or linearly in log "
+     "concentration. The two differ by several percent."),
+
+    ("PK", "lambda_z selection", "regress log concentration on time over the terminal points",
+     "The terminal elimination rate constant, from the slope of the last "
+     "few points on a log scale. Choosing WHICH points is the whole problem.",
+     "slope of np.polyfit(t[-n:], np.log(c[-n:]), 1), lambda_z = -slope",
+     "The standard rule is to take at least three points and keep adding "
+     "earlier ones while the adjusted R squared improves. Include a point "
+     "from the distribution phase and lambda_z comes out too steep, which "
+     "shortens the half life and shrinks the extrapolated AUC."),
+
+    ("PK", "adjusted R2", "1 - (1 - r2) * (n - 1) / (n - p - 1)",
+     "R squared with a penalty for the number of points used, so it can be "
+     "compared between fits with different n.",
+     "used to choose how many terminal points go into lambda_z",
+     "Plain R squared almost always improves when you add a point to a "
+     "regression, so it cannot choose between windows of different sizes. "
+     "That is the entire reason the adjusted form is the rule here."),
+
+    ("PK", "AUC extrapolation", "AUC_inf = AUC_last + C_last / lambda_z",
+     "Adding the area from the last sample to infinity, assuming the terminal "
+     "slope continues.",
+     "auc_inf = auc_last + c_last / lambda_z",
+     "Report the percentage extrapolated. Above about twenty percent the "
+     "number is mostly assumption and regulators say so. It is also extremely "
+     "sensitive to lambda_z, which is the least well determined quantity in "
+     "the whole NCA."),
+
+    ("PK", "mean residence time", "MRT = AUMC / AUC",
+     "The average time a molecule spends in the body. AUMC is the area under "
+     "the concentration times time curve.",
+     "mrt = aumc_inf / auc_inf",
+     "AUMC weights the tail by time, so it is even more sensitive to the "
+     "extrapolation than AUC is. For a one compartment IV bolus MRT is 1 / k, "
+     "which is the half life divided by ln(2), not the half life."),
+
+    ("PK", "depot and central", "dA/dt = -ka * A ; dC/dt = ka * A / V - k * C",
+     "The two compartment picture of an oral dose: an amount waiting to be "
+     "absorbed, and a concentration being eliminated.",
+     "solve_ivp over [depot, central] with the dose in the depot",
+     "The depot carries an AMOUNT and the central compartment a "
+     "CONCENTRATION, so the ka term is divided by V on the way in. Mixing up "
+     "amounts and concentrations is the most common error in writing these "
+     "systems."),
+
+    ("PK", "fitting an ODE model", "solve the system inside the model function curve_fit calls",
+     "Every candidate parameter set means solving the system again and "
+     "reading it at the sampling times.",
+     "def model(t, ka, k, v): sol = solve_ivp(...); return sol.y[1]",
+     "Set rtol and atol tight, 1e-8 and 1e-10, before you fit. Default "
+     "tolerances leave solver error large enough for the optimiser to chase, "
+     "and the parameters it returns then depend on the solver settings."),
+
+    ("PK", "flip-flop kinetics", "ka < k, so absorption controls the terminal slope",
+     "When absorption is slower than elimination, the terminal phase measures "
+     "absorption and the two rate constants swap roles.",
+     "a slowly absorbed depot formulation with a short elimination half life",
+     "The fitted pair (ka, k) and the pair with them exchanged describe the "
+     "same curve, so the fit cannot tell them apart from oral data alone. It "
+     "takes IV data, or a known half life, to break the tie."),
+
+    ("PK", "two compartment model", "central and peripheral, with distribution between them",
+     "A drug that distributes into tissue shows a fast early fall as it "
+     "distributes and a slower one as it is eliminated.",
+     "dC1/dt = -(k10 + k12) * C1 + k21 * C2 * V2 / V1",
+     "A one compartment model fitted to two compartment data chases the fast "
+     "early phase, which inflates clearance, understates the exposure and can "
+     "be wrong about the concentration at the end of a dosing interval by "
+     "orders of magnitude."),
+
+    ("PK", "alpha and beta phases", "the two exponentials of a two compartment curve",
+     "Alpha is the fast distribution phase, beta the slow terminal phase. The "
+     "half life quoted for a drug is usually the beta one.",
+     "C(t) = A * exp(-alpha * t) + B * exp(-beta * t)",
+     "Sampling that stops too early catches only the alpha phase and gives a "
+     "half life several fold too short. If a terminal slope looks too steep, "
+     "ask how long the samples ran, not just how many there were."),
+
+    ("PK", "Vss", "Vss = V1 + V2",
+     "The steady state volume of distribution: all the space the drug "
+     "eventually occupies, not just the compartment it is measured in.",
+     "vss = v1 + v2  for a two compartment model",
+     "V1 alone is the volume the first sample sees, and is much smaller. "
+     "Quoting V1 as the volume of distribution understates the tissue burden "
+     "and the loading dose."),
+
+    ("PK", "residual structure", "plot residuals against time and against prediction",
+     "Residuals that run in a block of one sign rather than scattering are "
+     "telling you the model is wrong, not that the data are noisy.",
+     "mean residual before Tmax -5.07, after Tmax +5.10",
+     "The sum of squares cannot see this. Two fits with the same SSE, one "
+     "scattered and one structured, are not equally good, and only the plot "
+     "distinguishes them."),
+
+    ("PK", "carrying state forward", "end the interval, then start the next from there",
+     "Simulating repeated doses by solving one interval at a time and using "
+     "its final state as the next interval's initial condition.",
+     "y0 = sol.y[:, -1].copy()  then add the next dose to the depot",
+     "Copy the final state, or you keep a view into the solver's array. And "
+     "add the dose to what is already there rather than replacing it, which "
+     "is the difference between accumulation and no accumulation."),
+
+    ("PK", "accumulation ratio", "R = 1 / (1 - exp(-k * tau))",
+     "How much higher the steady state concentration is than after the first "
+     "dose, for a given interval.",
+     "R = 1 / (1 - np.exp(-0.12 * 12))  gives  1.31",
+     "The formula assumes the input is instantaneous, so it matches the "
+     "ratio of TROUGHS closely and the ratio of peaks less well, since "
+     "absorption smears the peak of the first dose differently."),
+
+    ("PK", "time to steady state", "about 4 to 5 terminal half lives",
+     "Accumulation is 90 percent complete after about 3.3 half lives and 97 "
+     "percent after 5, whatever the dose or the interval.",
+     "a 6 h half life reaches steady state in about 30 h",
+     "It depends on the half life only. Raising the dose raises every "
+     "concentration proportionally and does not get you there sooner, which "
+     "is what loading doses are for."),
+
+    ("PK", "Cavg at steady state", "C_avg = DOSE / (CL * tau)",
+     "The average concentration over a dosing interval at steady state. "
+     "Clearance and the interval, nothing else.",
+     "100 / (4.2 * 24)  gives  0.992 mg/L",
+     "Volume and absorption rate do not appear. They decide how far the "
+     "concentration swings above and below this average, which is a different "
+     "question and often the one that matters for tolerability."),
+
+    ("PK", "steady state closed form", "each exponential divided by 1 - exp(-rate * tau)",
+     "The single dose equation turned into the steady state one, by summing "
+     "the infinite series of previous doses.",
+     "coef * (np.exp(-k * t) / (1 - np.exp(-k * TAU))\n"
+     "        - np.exp(-ka * t) / (1 - np.exp(-ka * TAU)))",
+     "Valid only for a linear model with identical doses at identical "
+     "intervals. One missed dose, or saturable kinetics, and you are back to "
+     "simulating interval by interval."),
+
+    ("PK", "Cavg identity", "integrate the steady state profile, divide by tau",
+     "Doing the integral numerically and checking it against DOSE / (CL * "
+     "tau) is the cheapest confirmation that a simulation is right.",
+     "trapezoid(c_ss) / TAU  should equal  DOSE / (CL * TAU)",
+     "If the two disagree, the error is usually in the accumulation factors "
+     "or in using a single dose profile where a steady state one was meant."),
+
+    ("PK", "hysteresis", "plot effect against concentration, joined in time order",
+     "A loop rather than a single curve means the effect does not depend on "
+     "the plasma concentration at that instant.",
+     "effect 6.8 ms on the way up and 22.0 on the way down, at 1.2 mg/L",
+     "Counter clockwise, with more effect on the way down, usually means "
+     "distribution to an effect site. Clockwise usually means tolerance or an "
+     "active metabolite. Either way a direct Emax fit is the wrong model."),
+
+    ("PK", "effect compartment", "dCe/dt = ke0 * (C(t) - Ce)",
+     "One hypothetical compartment, one rate constant, which delays and "
+     "smooths the plasma profile. The effect is then driven by Ce.",
+     "ln(2) / ke0 is the effect site equilibration half life",
+     "It collapses the hysteresis loop with one extra parameter. Its "
+     "signature is that the time of maximum effect is the SAME at every dose, "
+     "which is how you tell it from an indirect response."),
+
+    ("PK", "residuals against time", "mean residual before and after the peak",
+     "The quickest numerical version of the residual plot: two means that "
+     "should both be near zero.",
+     "direct fit: -5.07 before Tmax, +5.10 after. link fit: +0.10 and -0.18",
+     "A run of one sign followed by a run of the other is a model error, not "
+     "noise, and it is invisible in the SSE alone."),
+
+    ("PK", "indirect response model", "dR/dt = kin * (1 - Imax * C / (IC50 + C)) - kout * R",
+     "The drug acts on the production or loss of a biomarker that has its "
+     "own turnover, so the biomarker cannot respond faster than it turns "
+     "over.",
+     "inhibition of production, the most common of the four forms",
+     "The time of maximum effect moves LATER as the dose rises, because the "
+     "concentration stays above IC50 for longer. An effect compartment cannot "
+     "produce that, so three dose levels distinguish the two mechanisms."),
+
+    ("PK", "turnover half life", "ln(2) / kout",
+     "How fast the biomarker itself equilibrates. It sets the whole time "
+     "course of the effect, independently of the drug.",
+     "a 12 h turnover gives a nadir at 18.8 h; 6 h gives 14.2 h",
+     "The drug, its dose and its PK can be identical and the effect profile "
+     "still changes completely with this one number. It is also why dosing "
+     "intervals for these drugs often follow the biomarker rather than the "
+     "plasma half life."),
+
+    ("PK", "baseline pins kin", "kin = kout * R0",
+     "At baseline production equals removal, so the production rate is not a "
+     "free parameter once you know the baseline and kout.",
+     "kin = KOUT * R_BASE",
+     "Fitting R0, kin and kout together is fitting one parameter twice, and "
+     "the fit will not converge cleanly. Also start the system AT the "
+     "baseline, or it drifts there on its own and the model blames the drug."),
+
+    ("PK", "AUEC", "area between the baseline and the effect curve",
+     "Cumulative effect over time, which usually tracks clinical benefit "
+     "better than the peak effect does.",
+     "auec = trapezoid(R_BASE - r, t)  gives  1481 units/L*h",
+     "Say which direction you integrated. Baseline minus curve makes "
+     "suppression positive, the other way round makes it negative, and both "
+     "appear in the literature."),
+
+    ("PK", "geometric mean and CV", "exp(mean(log x)) and sqrt(exp(var(log x)) - 1)",
+     "The standard summary for PK parameters, which are approximately "
+     "lognormal. The geometric mean is the median of that distribution.",
+     "gm 4.198 L/h, CV 30.9 pct",
+     "Use the sample variance, ddof=1. The approximation CV is about omega is "
+     "fine for small variability and wrong by several points above 50 "
+     "percent, so know which form a reported number came from."),
+
+    ("PK", "arithmetic against geometric mean", "mean = median * exp(omega ** 2 / 2)",
+     "For a lognormal, the arithmetic mean sits above the median, by 4.6 "
+     "percent at omega 0.3 and 20 percent at omega 0.6.",
+     "np.exp(0.30 ** 2 / 2)  gives  1.046",
+     "A mean clearance and a typical clearance are different quantities. "
+     "Which one a report means is often not stated, and the gap grows fast "
+     "with variability."),
+
+    ("PK", "between subject CV", "the spread of individual estimates on the log scale",
+     "How much the parameter varies between people, the omega of a population "
+     "model.",
+     "100 * np.sqrt(np.exp(np.var(np.log(v_ind), ddof=1)) - 1)",
+     "From twelve subjects a true 31 percent comes back as anything between "
+     "18 and 44 percent, so do not compare a phase 1 CV with a phase 3 one "
+     "and conclude the population changed."),
+
+    ("PK", "pooled against individual fitting", "one parameter set for everybody, or one each",
+     "Naive pooling fits a single curve through the whole study. Two stage "
+     "fitting gives every subject their own parameters.",
+     "SSE 31.5 pooled against 1.37 individual, a 23 fold difference",
+     "Pooling hides between subject variability in the error term and biases "
+     "the typical value, because the subjects with the highest "
+     "concentrations dominate the sum of squares. Two stage recovers the "
+     "variability but biases it upward."),
+
+    ("PK", "Monte Carlo study simulation", "simulate many studies, look at the spread of the answers",
+     "Instead of asking what the estimate is, ask what the estimate would "
+     "have been across repeated studies of that size.",
+     "rng.lognormal(0.0, omega, size=(2000, 12)) then a CV per row",
+     "Draw once with a two dimensional size rather than looping, so the draw "
+     "order is fixed and the result reproduces. One row is one study."),
+
+    ("PK", "NONMEM event records", "ID, TIME, AMT, DV, EVID, MDV, CMT",
+     "A time ordered list of events per subject, where an event is either "
+     "something given or something measured. One row, one event.",
+     "a dosing row with AMT 100 and EVID 1, then observation rows with EVID 0",
+     "Rows are processed in order, so sort by ID then TIME, and put the dose "
+     "FIRST at identical times. A pre dose sample processed before the dose "
+     "runs without complaint and fits the wrong thing."),
+
+    ("PK", "EVID and MDV", "EVID 1 for a dose, 0 for an observation; MDV 1 means ignore DV",
+     "The two flags that carry the logic of a population dataset.",
+     "dosing rows always have MDV 1, since there is nothing to fit there",
+     "An observation row with MDV 1 is kept in the file and excluded from the "
+     "fit, which is how missing and below limit samples are handled without "
+     "losing the record of the time."),
+
+    ("PK", "BLQ handling", "M1 drop it, M3 treat it as censored, or substitute",
+     "A sample below the limit of quantification is not zero and not missing, "
+     "it is the information that the value lies between zero and the LLOQ.",
+     "M1: set MDV to 1. NCA: a pre dose sample after an oral dose IS zero.",
+     "The same record can be MDV 1 for the model fit and a hard zero in the "
+     "NCA of the same dataset. That is two analyses answering different "
+     "questions, and it belongs in the analysis plan."),
+
+    ("PK", "probability of target attainment", "the fraction of a simulated population meeting a criterion",
+     "With a population rather than a typical subject, the answer is a "
+     "fraction, not a number.",
+     "(mean_inhibition >= 0.55).mean()  gives  0.72",
+     "Efficacy and safety criteria move in opposite directions with dose, so "
+     "the joint probability peaks in the middle and the best dose is almost "
+     "never the one that maximises efficacy."),
+
+    ("PK", "joint criteria", "((eff >= target) & (cmax <= limit)).mean()",
+     "Counting the subjects who satisfy both criteria at once, rather than "
+     "multiplying two marginal probabilities.",
+     "0.645 jointly, against 0.657 from multiplying the margins",
+     "The criteria are correlated: a low clearance raises both the average "
+     "exposure, which helps efficacy, and the peak, which hurts safety. "
+     "Multiplying margins overstates your chances."),
 ]
 
 

@@ -458,7 +458,7 @@ def _part_b():
     except Exception as exc:
         return "`emax_model` raised %s when called as emax_model(c, emax, ec50)." % type(exc).__name__
     if probe is None:
-        return "`emax_model` returns None. Replace the # YOUR CODE line."
+        raise _Todo("`emax_model` returns None. Replace the # YOUR CODE line.")
     probe = _np.asarray(probe, dtype=float)
     if probe.shape != (2,):
         return "`emax_model` should return one value per concentration, so it must work on arrays."
@@ -505,7 +505,7 @@ def _part_c():
         return ("`sigmoid_model` raised %s when called as sigmoid_model(c, emax, ec50, h)."
                 % type(exc).__name__)
     if probe is None:
-        return "`sigmoid_model` returns None. Replace the # YOUR CODE line."
+        raise _Todo("`sigmoid_model` returns None. Replace the # YOUR CODE line.")
     probe = _np.asarray(probe, dtype=float)
     if probe.shape != (2,):
         return "`sigmoid_model` should return one value per concentration."

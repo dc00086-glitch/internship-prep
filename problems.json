@@ -248,5 +248,155 @@
     "est": "20-30 min",
     "path": "problems/week05/w5d5_sklearn_pca.ipynb",
     "solution": "solutions/week05/w5d5_sklearn_pca_solution.ipynb"
+  },
+  {
+    "id": "W6D1",
+    "week": 6,
+    "day": 1,
+    "title": "Tensors: numpy with two things added",
+    "topic": "PyTorch: tensors, dtypes, shapes, numpy interop, the autograd flag",
+    "est": "20-30 min",
+    "path": "problems/week06/w6d1_torch_tensors.ipynb",
+    "solution": "solutions/week06/w6d1_torch_tensors_solution.ipynb"
+  },
+  {
+    "id": "W6D2",
+    "week": 6,
+    "day": 2,
+    "title": "Autograd: derivatives you did not have to derive",
+    "topic": "PyTorch: backward, .grad, gradient accumulation, no_grad, autograd vs finite differences",
+    "est": "20-30 min",
+    "path": "problems/week06/w6d2_torch_autograd.ipynb",
+    "solution": "solutions/week06/w6d2_torch_autograd_solution.ipynb"
+  },
+  {
+    "id": "W6D3",
+    "week": 6,
+    "day": 3,
+    "title": "Gradient descent, written out by hand",
+    "topic": "PyTorch: the fitting loop, learning rate, log parameters, divergence",
+    "est": "20-30 min",
+    "path": "problems/week06/w6d3_torch_gradient_descent.ipynb",
+    "solution": "solutions/week06/w6d3_torch_gradient_descent_solution.ipynb"
+  },
+  {
+    "id": "W6D4",
+    "week": 6,
+    "day": 4,
+    "title": "nn.Module and an optimiser: the loop everyone actually writes",
+    "topic": "PyTorch: nn.Module, nn.Parameter, torch.optim, Adam against plain SGD",
+    "est": "20-30 min",
+    "path": "problems/week06/w6d4_torch_module_optimizer.ipynb",
+    "solution": "solutions/week06/w6d4_torch_module_optimizer_solution.ipynb"
+  },
+  {
+    "id": "W6D5",
+    "week": 6,
+    "day": 5,
+    "title": "Twelve subjects, twenty four parameters, one backward pass",
+    "topic": "PyTorch: vectorised parameters, pooled against individual fitting, recovering between subject variability",
+    "est": "25-35 min",
+    "path": "problems/week06/w6d5_torch_population_fit.ipynb",
+    "solution": "solutions/week06/w6d5_torch_population_fit_solution.ipynb"
+  },
+  {
+    "id": "W7D1",
+    "week": 7,
+    "day": 1,
+    "title": "Non-compartmental analysis: Cmax, Tmax and AUC by trapezoid",
+    "topic": "PK: linear and linear-up log-down trapezoidal AUC, partial AUC",
+    "est": "20-30 min",
+    "path": "problems/week07/w7d1_nca_auc_trapezoid.ipynb",
+    "solution": "solutions/week07/w7d1_nca_auc_trapezoid_solution.ipynb"
+  },
+  {
+    "id": "W7D2",
+    "week": 7,
+    "day": 2,
+    "title": "Finishing the NCA: lambda_z, AUC to infinity, clearance and MRT",
+    "topic": "PK: terminal slope selection, extrapolated AUC, CL/F, Vz/F, mean residence time",
+    "est": "20-30 min",
+    "path": "problems/week07/w7d2_nca_lambdaz_clearance.ipynb",
+    "solution": "solutions/week07/w7d2_nca_lambdaz_clearance_solution.ipynb"
+  },
+  {
+    "id": "W7D3",
+    "week": 7,
+    "day": 3,
+    "title": "Fitting a one compartment oral model, and checking it against NCA",
+    "topic": "PK modelling: depot and central compartments, fitting an ODE model, model versus NCA",
+    "est": "20-30 min",
+    "path": "problems/week07/w7d3_pk_fit_one_compartment.ipynb",
+    "solution": "solutions/week07/w7d3_pk_fit_one_compartment_solution.ipynb"
+  },
+  {
+    "id": "W7D4",
+    "week": 7,
+    "day": 4,
+    "title": "Two compartments, and what a one compartment model gets wrong",
+    "topic": "PK modelling: distribution phase, alpha and beta, choosing model structure",
+    "est": "20-30 min",
+    "path": "problems/week07/w7d4_pk_two_compartment.ipynb",
+    "solution": "solutions/week07/w7d4_pk_two_compartment_solution.ipynb"
+  },
+  {
+    "id": "W7D5",
+    "week": 7,
+    "day": 5,
+    "title": "Multiple dosing: accumulation, steady state, and how long it takes",
+    "topic": "PK: repeated dosing by simulation, accumulation ratio, time to steady state",
+    "est": "20-30 min",
+    "path": "problems/week07/w7d5_pk_multiple_dosing.ipynb",
+    "solution": "solutions/week07/w7d5_pk_multiple_dosing_solution.ipynb"
+  },
+  {
+    "id": "W8D1",
+    "week": 8,
+    "day": 1,
+    "title": "PK/PD link: why the effect peaks hours after the concentration",
+    "topic": "PK/PD: hysteresis, direct Emax fitting and its residual structure, the effect compartment",
+    "est": "25-35 min",
+    "path": "problems/week08/w8d1_pkpd_hysteresis.ipynb",
+    "solution": "solutions/week08/w8d1_pkpd_hysteresis_solution.ipynb"
+  },
+  {
+    "id": "W8D2",
+    "week": 8,
+    "day": 2,
+    "title": "Indirect response: when the biomarker, not the drug, sets the clock",
+    "topic": "PK/PD: turnover models, inhibition of production, dose dependent time to nadir",
+    "est": "25-35 min",
+    "path": "problems/week08/w8d2_indirect_response.ipynb",
+    "solution": "solutions/week08/w8d2_indirect_response_solution.ipynb"
+  },
+  {
+    "id": "W8D3",
+    "week": 8,
+    "day": 3,
+    "title": "A virtual population: simulating variability and reading it back",
+    "topic": "Population PK: lognormal parameters, exposure percentiles, how precisely a CV can be estimated",
+    "est": "25-35 min",
+    "path": "problems/week08/w8d3_population_variability.ipynb",
+    "solution": "solutions/week08/w8d3_population_variability_solution.ipynb"
+  },
+  {
+    "id": "W8D4",
+    "week": 8,
+    "day": 4,
+    "title": "Building a NONMEM ready dataset, and auditing it",
+    "topic": "Population PK: event records, EVID and MDV, BLQ handling, per subject NCA with groupby",
+    "est": "25-35 min",
+    "path": "problems/week08/w8d4_nonmem_dataset.ipynb",
+    "solution": "solutions/week08/w8d4_nonmem_dataset_solution.ipynb"
+  },
+  {
+    "id": "W8D5",
+    "week": 8,
+    "day": 5,
+    "title": "Capstone: choosing the phase 2 dose",
+    "topic": "PK/PD: steady state exposure, probability of target attainment, joint efficacy and safety",
+    "est": "30-40 min",
+    "path": "problems/week08/w8d5_dose_selection.ipynb",
+    "solution": "solutions/week08/w8d5_dose_selection_solution.ipynb"
   }
 ]

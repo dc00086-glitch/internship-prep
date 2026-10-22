@@ -217,7 +217,9 @@ def nb_metadata():
 
 
 def header_md(spec, is_solution, nb_path):
-    badge = "[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](%s)" % colab_url(nb_path)
+    # A text link rather than the badge image, so the header still reads
+    # properly with no internet, which it has to for the offline route.
+    badge = "[Open this notebook in Colab](%s)" % colab_url(nb_path)
     kind = "REFERENCE SOLUTION" if is_solution else "Problem"
     out = ["# %s %s: %s" % (kind, spec.PID, spec.TITLE), "", badge, "",
            "| | |", "|---|---|",
@@ -242,7 +244,9 @@ def header_md(spec, is_solution, nb_path):
                 "[foundations notebook](%s) covers Python, numpy, pandas and "
                 "matplotlib from the ground up, and you can keep it open in a "
                 "second tab." % colab_url("reference/foundations.ipynb"), "",
-                "Nothing here needs installing. Everything used is already in Colab.", ""]
+                "Nothing here needs installing. Everything used is already in "
+                "Colab, and `python start.py` installs the same set on your own "
+                "computer if you would rather work offline.", ""]
     return "\n".join(out)
 
 
