@@ -122,7 +122,64 @@ CASES = [
                   "ax.set_xticks([0,1]); ax.set_xticklabels(list(group_stats['GROUP']))\n"
                   "ax.set_xlabel('g'); ax.set_ylabel('i'); ax.set_title('t')",
      "do not match the mean of the animal means"),
+# ------------------------------------------------------------ week 2
+    ("W2D1", "a", "df = raw.copy()\n"
+                  "df['BASELINE'] = df.groupby('SUBJECT')['BIOMARKER'].transform('first')",
+     "not sorted by SUBJECT"),
+    ("W2D1", "a", "df['BASELINE'] = df.groupby('SUBJECT')['BIOMARKER'].transform('mean')",
+     "MEAN, not their time zero"),
+    ("W2D1", "b", "df_post['PCT_CHANGE'] = df_post['PCT_CHANGE'] / 100.0", "fraction"),
+    ("W2D1", "b", "df_post['PCT_CHANGE'] = -df_post['PCT_CHANGE']", "sign the wrong way"),
+    ("W2D1", "c", "summary['PCT_SD'] = summary['PCT_SD'] / np.sqrt(summary['N'])", "SEM"),
+
+    ("W2D2", "a", "n_dup_rows = int(dosing.duplicated(subset=['SUBJECT'], keep=False).sum())",
+     "keep=False"),
+    ("W2D2", "b", "merged = pd.merge(pk, dosing, on='SUBJECT', how='left')", "doubled"),
+    ("W2D2", "b", "merged = pd.merge(pk, dosing_clean, on='SUBJECT', how='inner')",
+     "inner join dropped"),
+    ("W2D2", "c", "n_left_only = int((checked['_merge'] == 'both').sum())", "did match"),
+    ("W2D2", "c", "n_left_only = 1", "unmatched SUBJECTS"),
+
+    ("W2D3", "a", "df['OUT_OF_WINDOW'] = df['DEV_MIN'].abs() > 5.0\n"
+                  "n_out_of_window = int(df['OUT_OF_WINDOW'].sum())", "flat 5 minute"),
+    ("W2D3", "a", "df['OUT_OF_WINDOW'] = df['DEV_MIN'].abs() > 30.0\n"
+                  "n_out_of_window = int(df['OUT_OF_WINDOW'].sum())", "flat 30 minute"),
+    ("W2D3", "a", "df['DEV_MIN'] = df['ACTUAL_H'] - df['NOMINAL_H']", "in hours"),
+    ("W2D3", "b", "grid = samples[['SUBJECT','NOMINAL_H']].copy()", "not the full scheduled"),
+    ("W2D3", "c", "per_subject = per_subject.iloc[:-1]", "rows but there are"),
+
+    ("W2D4", "a", "ae_counts = pd.crosstab(ae['GROUP'], ae['SEVERITY']).reindex(GROUP_ORDER)",
+     "no Total row"),
+    ("W2D4", "b", "ae_pct = (pd.crosstab(ae['GROUP'], ae['SEVERITY'], normalize='columns')"
+                  "*100).reindex(GROUP_ORDER).round(1)", "down the columns"),
+    ("W2D4", "b", "ae_pct = pd.crosstab(ae['GROUP'], ae['SEVERITY'], normalize='index')"
+                  ".reindex(GROUP_ORDER)", "still a fraction"),
+    ("W2D4", "c", "incidence['N_DOSED'] = incidence['N_WITH_AE']\n"
+                  "incidence['PCT_WITH_AE'] = (100.0*incidence['N_WITH_AE']/incidence['N_DOSED']).round(1)",
+     "taken from the event log"),
+    ("W2D4", "c", "incidence['N_WITH_AE'] = (ae.groupby('GROUP')['SUBJECT'].size()"
+                  ".reindex(GROUP_ORDER).fillna(0).astype(int).to_numpy())", "counted EVENTS"),
+
+    ("W2D5", "a", "summary['CONC_SD'] = summary['CONC_SD'] / np.sqrt(summary['N'])", "SEM"),
+    ("W2D5", "b", "_SEM = summary['CONC_SD'] / np.sqrt(summary['N'])\n"
+                  "fig, axes = plt.subplots(1, 2, figsize=(11, 4.2))\n"
+                  "for _n, _p in summary.assign(SE=_SEM.to_numpy()).groupby('DOSE'):\n"
+                  "    for _a in axes:\n"
+                  "        _a.errorbar(_p['TIME_H'], _p['CONC_MEAN'], yerr=_p['SE'], fmt='o-', label=_n)\n"
+                  "axes[1].set_yscale('log')\n"
+                  "for _a in axes:\n"
+                  "    _a.set_xlabel('t'); _a.set_ylabel('c'); _a.set_title('x')\n"
+                  "axes[0].legend()", "SEM error bars"),
+    ("W2D5", "b", "axes[0].set_yscale('log')", "Both panels are logarithmic"),
+    ("W2D5", "c", "fig2, ax2 = plt.subplots()\n"
+                  "for _n, _p in pk.groupby('DOSE'):\n"
+                  "    ax2.plot(_p['TIME_H'], _p['CONC_MG_L'])\n"
+                  "ax2.set_yscale('log')\n"
+                  "ax2.set_xlabel('t'); ax2.set_ylabel('c'); ax2.set_title('x')",
+     "one per dose group"),
+    ("W2D5", "c", "ax2.set_yscale('linear')", "not logarithmic"),
 ]
+
 
 
 def load_specs():

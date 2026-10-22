@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Browse all problems</title>
+<meta name="description" content="Every week and day of the internship-prep practice set, in one page.">
+<style>
+  :root {
+    --bg: #f7f8fa; --card: #ffffff; --ink: #16181d; --ink-soft: #5b6472;
+    --line: #e3e6eb; --accent: #1b5e9c; --accent-ink: #ffffff; --badge: #eef3f9;
+    --code-bg: #f4f6f8; --code-ink: #1f2937; --warn: #9a3412;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14161a; --card: #1c1f25; --ink: #e8eaee; --ink-soft: #9aa4b2;
+      --line: #2c3138; --accent: #5ea2e0; --accent-ink: #10131a; --badge: #252a32;
+      --code-bg: #15181d; --code-ink: #d6dae0; --warn: #f0a070;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .layout { display: flex; min-height: 100vh; }
+
+  /* sidebar */
+  aside {
+    width: 272px; flex: 0 0 272px; border-right: 1px solid var(--line);
+    background: var(--card); padding: 20px 0 48px; position: sticky; top: 0;
+    height: 100vh; overflow-y: auto;
+  }
+  aside h1 { font-size: 1rem; margin: 0 18px 4px; }
+  aside .sub { font-size: 0.8rem; color: var(--ink-soft); margin: 0 18px 16px; }
+  aside a.home { display: block; margin: 0 18px 16px; font-size: 0.82rem; color: var(--accent); text-decoration: none; }
+  aside a.home:hover { text-decoration: underline; }
+  .wk { margin-top: 10px; }
+  .wk-h {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 700; color: var(--ink-soft); padding: 8px 18px 4px;
+  }
+  .wk-h span { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  .d {
+    display: block; padding: 7px 18px; font-size: 0.85rem; color: var(--ink);
+    text-decoration: none; border-left: 3px solid transparent; cursor: pointer;
+  }
+  .d:hover { background: var(--badge); }
+  .d.on { border-left-color: var(--accent); background: var(--badge); font-weight: 600; }
+  .d code { font-size: 0.78rem; color: var(--ink-soft); margin-right: 7px; }
+  .d.on code { color: var(--accent); }
+
+  /* main */
+  main { flex: 1 1 auto; min-width: 0; padding: 26px 32px 120px; max-width: 900px; }
+  .pid {
+    display: inline-block; font: 600 0.74rem/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--badge); color: var(--ink-soft); border: 1px solid var(--line);
+    border-radius: 5px; padding: 5px 7px;
+  }
+  h2.title { font-size: 1.4rem; margin: 10px 0 6px; line-height: 1.3; }
+  .meta { color: var(--ink-soft); font-size: 0.88rem; margin: 0 0 16px; }
+  .btns { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 8px; }
+  a.btn {
+    display: inline-block; text-decoration: none; font-weight: 600; font-size: 0.88rem;
+    padding: 9px 15px; border-radius: 8px; border: 1px solid var(--accent);
+    background: var(--accent); color: var(--accent-ink);
+  }
+  a.btn.ghost { background: transparent; color: var(--accent); }
+  a.btn.quiet { background: transparent; color: var(--ink-soft); border-color: var(--line); }
+  a.btn:hover { filter: brightness(1.08); }
+
+  .jump {
+    position: sticky; top: 0; z-index: 5; background: var(--bg);
+    padding: 12px 0 10px; border-bottom: 1px solid var(--line); margin-bottom: 8px;
+    display: flex; flex-wrap: wrap; gap: 7px;
+  }
+  .jump a {
+    font-size: 0.78rem; text-decoration: none; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; background: var(--card);
+  }
+  .jump a:hover { color: var(--ink); border-color: var(--accent); }
+
+  section.blk { border-bottom: 1px solid var(--line); padding: 20px 0 6px; scroll-margin-top: 62px; }
+  section.blk > h3 {
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.09em;
+    color: var(--ink-soft); margin: 0 0 10px; font-weight: 700;
+  }
+  .body h2 { font-size: 1.12rem; margin: 18px 0 8px; }
+  .body h3 { font-size: 1rem; margin: 16px 0 6px; }
+  .body p { margin: 0 0 11px; }
+  .body ul, .body ol { margin: 0 0 11px; padding-left: 22px; }
+  .body li { margin-bottom: 4px; }
+  .body blockquote {
+    margin: 0 0 12px; padding: 8px 14px; border-left: 3px solid var(--accent);
+    background: var(--badge); color: var(--ink-soft);
+  }
+  .body code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.86em; background: var(--badge); padding: 1px 5px; border-radius: 4px;
+  }
+  .body table { border-collapse: collapse; width: 100%; margin: 0 0 14px; font-size: 0.88rem; }
+  .body th, .body td { border: 1px solid var(--line); padding: 7px 9px; text-align: left; vertical-align: top; }
+  .body th { background: var(--badge); font-weight: 600; }
+  .body td code { background: transparent; padding: 0; }
+  pre.code {
+    background: var(--code-bg); color: var(--code-ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 13px 15px; overflow-x: auto; margin: 0 0 14px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.8rem; line-height: 1.5;
+  }
+  pre.code code { background: none; padding: 0; font-size: inherit; }
+
+  .pager { display: flex; gap: 10px; margin-top: 26px; }
+  .pager a, .pager span {
+    font-size: 0.85rem; text-decoration: none; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 13px; background: var(--card);
+    cursor: pointer;
+  }
+  .pager span { opacity: 0.4; cursor: default; }
+  .pager a:hover { color: var(--ink); border-color: var(--accent); }
+
+  /* toolkit drawer */
+  #tk-btn {
+    position: fixed; right: 20px; bottom: 20px; z-index: 20;
+    background: var(--accent); color: var(--accent-ink); border: none;
+    border-radius: 999px; padding: 13px 20px; font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; box-shadow: 0 3px 14px rgba(0,0,0,0.22); font-family: inherit;
+  }
+  #tk-btn:hover { filter: brightness(1.08); }
+  #tk {
+    position: fixed; top: 0; right: 0; width: min(540px, 94vw); height: 100vh; z-index: 30;
+    background: var(--card); border-left: 1px solid var(--line); overflow-y: auto;
+    padding: 20px 24px 60px; transform: translateX(102%); transition: transform 0.18s ease;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.14);
+  }
+  #tk.open { transform: translateX(0); }
+  #tk .tk-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  #tk h3 { margin: 0; font-size: 0.95rem; }
+  #tk button {
+    background: transparent; border: 1px solid var(--line); border-radius: 7px;
+    color: var(--ink-soft); padding: 5px 11px; cursor: pointer; font-family: inherit; font-size: 0.82rem;
+  }
+  #tk button:hover { color: var(--ink); }
+
+  #menu-btn { display: none; }
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; }
+    aside { position: static; width: auto; height: auto; flex: none; border-right: none;
+            border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+    main { padding: 18px 16px 120px; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+  <aside>
+    <h1>Browse all problems</h1>
+    <p class="sub" id="aside-sub"></p>
+    <a class="home" href="./">Back to today's problem</a>
+    <nav id="nav"></nav>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<button id="tk-btn" type="button">Toolkit</button>
+<div id="tk">
+  <div class="tk-top"><h3 id="tk-title">Toolkit</h3><button type="button" id="tk-close">Close</button></div>
+  <div class="body" id="tk-body"></div>
+</div>
+
+<script>
+  // === PROBLEMS START ===
+  const PROBLEMS = [
+ {
+  "id": "W1D1",
+  "week": 1,
+  "day": 1,
+  "title": "Clean one plasma profile and get the terminal half-life",
+  "topic": "numpy: 1D arrays, nan masking, log-linear terminal slope",
+  "est": "20-30 min",
+  "colab": "https://colab.research.google.com/github/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d1_numpy_pk_profile.ipynb",
+  "github": "https://github.com/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d1_numpy_pk_profile.ipynb",
+  "solution": "https://github.com/dc00086-glitch/internship-prep/blob/main/solutions/week01/w1d1_numpy_pk_profile_solution.ipynb",
+  "toolkit": "<h2>Toolkit for this problem</h2>\n<p>Everything below runs on a tiny made up array, so none of it is the answer.\nRun the cell, read the output, then use the same moves on the real data.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>make an array from a list</td>\n<td><code>np.array([1.0, 2.0, 3.0])</code></td>\n</tr>\n<tr>\n<td>how many entries it has</td>\n<td><code>a.size</code>, or <code>len(a)</code></td>\n</tr>\n<tr>\n<td>flag the missing values</td>\n<td><code>np.isnan(a)</code> gives True where the value is nan</td>\n</tr>\n<tr>\n<td>flip a True/False array</td>\n<td><code>~mask</code> turns every True into False and back</td>\n</tr>\n<tr>\n<td>count the Trues</td>\n<td><code>np.sum(mask)</code>, because True counts as 1</td>\n</tr>\n<tr>\n<td>keep only some entries</td>\n<td><code>a[mask]</code>, where <code>mask</code> is True/False and the same length</td>\n</tr>\n<tr>\n<td>the biggest value</td>\n<td><code>np.max(a)</code></td>\n</tr>\n<tr>\n<td>where the biggest value is</td>\n<td><code>np.argmax(a)</code> gives a position, not a value</td>\n</tr>\n<tr>\n<td>the value at a position</td>\n<td><code>a[3]</code>, counting from 0</td>\n</tr>\n<tr>\n<td>the last 4 entries</td>\n<td><code>a[-4:]</code></td>\n</tr>\n<tr>\n<td>natural log</td>\n<td><code>np.log(a)</code>, which is ln, not log base 10</td>\n</tr>\n<tr>\n<td>fit a straight line</td>\n<td><code>np.polyfit(x, y, deg=1)</code> returns <code>[slope, intercept]</code></td>\n</tr>\n</tbody>\n</table>",
+  "sections": [
+   {
+    "key": "scenario",
+    "label": "Scenario",
+    "html": "<h2>Scenario</h2>\n<p>One healthy volunteer received a single 100 mg intramuscular dose of a new\ncompound. Plasma was sampled at 11 timepoints out to 36 hours and assayed by\nLC-MS/MS. The bioanalytical lab reports any sample below the lower limit of\nquantification (LLOQ, here 0.5 mg/L) as BLQ, and in the array you are handed\nthose arrive as <code>np.nan</code>.</p>\n<p>This is the first pass a pharmacometrician makes on any new profile: clean the\nrecord, describe the peak, then estimate how fast the drug leaves. Everything\nhere is plain numpy, no pandas.</p>"
+   },
+   {
+    "key": "concept",
+    "label": "How numpy works, in two minutes",
+    "html": "<h2>How numpy works, in two minutes</h2>\n<p><strong>The problem numpy solves.</strong> A plain Python list holds things in order, but\nyou cannot do maths on it. <code>[1, 2, 3] * 2</code> gives you <code>[1, 2, 3, 1, 2, 3]</code>,\nwhich is almost never what a scientist wants. To halve every concentration in\na list you need a loop.</p>\n<p>A numpy <strong>array</strong> holds numbers of one kind and does maths on all of them at\nonce. <code>np.array([1, 2, 3]) * 2</code> gives <code>[2, 4, 6]</code>. That is the whole idea, and\neverything else follows from it:</p>\n<ul>\n<li><strong>Elementwise by default.</strong> <code>conc / 1000</code> converts every value. <code>t2 - t1</code>\n  subtracts pairwise. No loop, and it runs in compiled code rather than\n  Python, so it is fast enough for real datasets.</li>\n<li><strong>Comparisons give you arrays too.</strong> <code>conc &gt; 5</code> does not give one True or\n  False, it gives one per entry. That array of True and False is called a\n  <strong>mask</strong>, and you can hand it straight back to the array to pull out just\n  those entries: <code>conc[conc &gt; 5]</code>. This is how nearly all filtering is done.</li>\n<li><strong>A mask built from one array works on another</strong>, as long as they are the\n  same length and in the same order. That is what lets you say \"give me the\n  times where the concentration was measurable\".</li>\n</ul>\n<p><strong>Why <code>nan</code> exists.</strong> <code>nan</code> means \"not a number\", a slot where a value should\nbe but is not. Bioanalytical data is full of them, because a sample below the\nassay limit has no number, only a statement that it was too low. numpy\ndeliberately makes <code>nan</code> contagious: <code>np.max</code> of anything containing one\nreturns <code>nan</code> rather than quietly ignoring it. That is a feature. It forces\nyou to decide what to do about missing data instead of letting the decision\nget made for you. You either drop them with a mask, or use the <code>nan</code>-aware\nversion of the function, such as <code>np.nanmax</code>.</p>\n<p><strong>Positions versus values.</strong> <code>np.max</code> answers \"what was the biggest\". It\ncannot tell you <em>when</em> that happened, because the array of concentrations\nknows nothing about time. <code>np.argmax</code> answers \"where was the biggest\", giving\nyou a position. You then use that position to look up the matching time in the\nother array. Cmax and Tmax are exactly this pair of questions, which is why\nthey come up together.</p>"
+   },
+   {
+    "key": "task",
+    "label": "Your task",
+    "html": "<h2>Your task</h2>\n<p>Three parts, worked one at a time.</p>\n<table>\n<thead>\n<tr>\n<th>Part</th>\n<th>What you work out</th>\n<th>Variables to fill in</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>a</td>\n<td>which samples are usable, and how many came back BLQ</td>\n<td><code>measurable</code>, <code>n_blq</code>, <code>t_meas</code>, <code>c_meas</code></td>\n</tr>\n<tr>\n<td>b</td>\n<td>how high the profile got, and when</td>\n<td><code>cmax</code>, <code>tmax</code></td>\n</tr>\n<tr>\n<td>c</td>\n<td>how fast the drug leaves</td>\n<td><code>t_term</code>, <code>c_term</code>, <code>lambda_z</code>, <code>t_half</code></td>\n</tr>\n</tbody>\n</table>\n<p>Below this you will find the <strong>Setup</strong> cell, then a <strong>Toolkit</strong> cell that\ndemonstrates every move on a tiny made up example, then <strong>Part a</strong>, <strong>Part b</strong>\nand <strong>Part c</strong>, each with its own explanation and a cell to write in.</p>"
+   },
+   {
+    "key": "setup",
+    "label": "Setup",
+    "html": "<pre class=\"code\"><code>import numpy as np\n\nPROBLEM_ID = &quot;W1D1&quot;\nTOPIC = &quot;numpy: 1D arrays, nan masking, log-linear terminal slope&quot;\n\nrng = np.random.default_rng(1101)\n\n# Study design\nDOSE_MG = 100.0\nLLOQ = 0.5                     # mg/L, anything below this is reported BLQ\ntime_h = np.array([0.25, 0.5, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 24.0, 36.0])\n\n# One compartment, first order absorption. These are the &quot;truth&quot; the lab cannot see.\n_F, _V, _ka, _kel = 0.90, 35.0, 1.20, 0.0866\n_true = (_F * DOSE_MG * _ka) / (_V * (_ka - _kel)) * (np.exp(-_kel * time_h) - np.exp(-_ka * time_h))\n\n# Assay noise, then the lab rounds to 3 decimals and censors below the LLOQ.\nconc = np.round(_true * rng.lognormal(mean=0.0, sigma=0.15, size=time_h.size), 3)\nconc[conc &lt; LLOQ] = np.nan\n\nprint(&quot;dose:&quot;, DOSE_MG, &quot;mg IM        LLOQ:&quot;, LLOQ, &quot;mg/L&quot;)\nprint(&quot;time_h:&quot;, time_h)\nprint(&quot;conc  :&quot;, conc)</code></pre>"
+   },
+   {
+    "key": "toolkit",
+    "label": "Toolkit",
+    "html": "<h2>Toolkit for this problem</h2>\n<p>Everything below runs on a tiny made up array, so none of it is the answer.\nRun the cell, read the output, then use the same moves on the real data.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>make an array from a list</td>\n<td><code>np.array([1.0, 2.0, 3.0])</code></td>\n</tr>\n<tr>\n<td>how many entries it has</td>\n<td><code>a.size</code>, or <code>len(a)</code></td>\n</tr>\n<tr>\n<td>flag the missing values</td>\n<td><code>np.isnan(a)</code> gives True where the value is nan</td>\n</tr>\n<tr>\n<td>flip a True/False array</td>\n<td><code>~mask</code> turns every True into False and back</td>\n</tr>\n<tr>\n<td>count the Trues</td>\n<td><code>np.sum(mask)</code>, because True counts as 1</td>\n</tr>\n<tr>\n<td>keep only some entries</td>\n<td><code>a[mask]</code>, where <code>mask</code> is True/False and the same length</td>\n</tr>\n<tr>\n<td>the biggest value</td>\n<td><code>np.max(a)</code></td>\n</tr>\n<tr>\n<td>where the biggest value is</td>\n<td><code>np.argmax(a)</code> gives a position, not a value</td>\n</tr>\n<tr>\n<td>the value at a position</td>\n<td><code>a[3]</code>, counting from 0</td>\n</tr>\n<tr>\n<td>the last 4 entries</td>\n<td><code>a[-4:]</code></td>\n</tr>\n<tr>\n<td>natural log</td>\n<td><code>np.log(a)</code>, which is ln, not log base 10</td>\n</tr>\n<tr>\n<td>fit a straight line</td>\n<td><code>np.polyfit(x, y, deg=1)</code> returns <code>[slope, intercept]</code></td>\n</tr>\n</tbody>\n</table><pre class=\"code\"><code>import numpy as np\n\n# A tiny made up example. Nothing here is the answer to the problem.\ndemo_t = np.array([0.0, 1.0, 2.0, 3.0, 4.0])          # make an array from a list\ndemo_c = np.array([5.0, 9.0, np.nan, 6.0, 2.0])       # nan stands in for a missing value\n\nprint(&quot;demo_t            :&quot;, demo_t)\nprint(&quot;demo_c            :&quot;, demo_c)\nprint(&quot;how many entries  :&quot;, demo_c.size)\n\nprint(&quot;&quot;)\nprint(&quot;--- 1. finding the missing values ---&quot;)\nprint(&quot;np.isnan(demo_c)  :&quot;, np.isnan(demo_c))        # True where the value is MISSING\nprint(&quot;~np.isnan(demo_c) :&quot;, ~np.isnan(demo_c))       # True where the value is USABLE\nprint(&quot;count of nan      :&quot;, int(np.sum(np.isnan(demo_c))))\n\nprint(&quot;&quot;)\nprint(&quot;--- 2. using a True/False array to pick entries out ---&quot;)\ndemo_keep = ~np.isnan(demo_c)\nprint(&quot;times kept        :&quot;, demo_t[demo_keep])       # same mask works on both arrays\nprint(&quot;values kept       :&quot;, demo_c[demo_keep])\n\nprint(&quot;&quot;)\nprint(&quot;--- 3. the biggest value, and when it happened ---&quot;)\ndemo_good_t = demo_t[demo_keep]\ndemo_good_c = demo_c[demo_keep]\nprint(&quot;biggest value     :&quot;, np.max(demo_good_c))\nprint(&quot;its position      :&quot;, np.argmax(demo_good_c), &quot; &lt;- a position, not a value&quot;)\nprint(&quot;time at that spot :&quot;, demo_good_t[np.argmax(demo_good_c)], &quot; &lt;- feed the position back in&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 4. the last few entries ---&quot;)\nprint(&quot;last 2 times      :&quot;, demo_good_t[-2:])\nprint(&quot;last 2 values     :&quot;, demo_good_c[-2:])\n\nprint(&quot;&quot;)\nprint(&quot;--- 5. natural log and a straight line fit ---&quot;)\nprint(&quot;np.log(values)    :&quot;, np.log(demo_good_c))\ndemo_slope, demo_intercept = np.polyfit(demo_good_t, np.log(demo_good_c), deg=1)\nprint(&quot;slope             :&quot;, round(demo_slope, 4), &quot; &lt;- negative when the line goes down&quot;)\nprint(&quot;intercept         :&quot;, round(demo_intercept, 4))</code></pre>"
+   },
+   {
+    "key": "parta",
+    "label": "Part a",
+    "html": "<h2>Part a. Deal with the BLQ samples</h2>\n<p>The lab handed you <code>nan</code> wherever a sample fell below the assay limit. Until\nyou know which samples are real, no summary of this profile means anything,\nso this is always step one.</p>\n<p>Build a mask of the usable samples, count the ones that are not, then use that\nmask to pull the usable times and concentrations out. The same mask works on\nboth arrays because they are the same length and in the same order.</p>\n<p>Fill in <code>measurable</code>, <code>n_blq</code>, <code>t_meas</code>, <code>c_meas</code>.\nMoves: <code>np.isnan</code>, <code>~</code>, <code>np.sum</code>, and indexing an array with a mask.</p><pre class=\"code\"><code># Part a. Deal with the BLQ samples.\n\nmeasurable = None   # YOUR CODE: boolean array, True where conc is measurable\nn_blq = None        # YOUR CODE: whole number, how many samples are BLQ\nt_meas = None       # YOUR CODE: times of the measurable samples\nc_meas = None       # YOUR CODE: concentrations of the measurable samples\n\nprint(&quot;measurable:&quot;, measurable)\nprint(&quot;n_blq     :&quot;, n_blq)\nprint(&quot;t_meas    :&quot;, t_meas)\nprint(&quot;c_meas    :&quot;, c_meas)</code></pre>"
+   },
+   {
+    "key": "partb",
+    "label": "Part b",
+    "html": "<h2>Part b. Describe the peak</h2>\n<p>Cmax and Tmax are two questions about the same point on the curve: how high\ndid it get, and when. <code>np.max</code> answers the first. The second needs\n<code>np.argmax</code>, which hands you a <strong>position</strong>, and you then look that position\nup in the time array to turn it into an hour.</p>\n<p>Work from the measurable samples, so <code>c_meas</code> and <code>t_meas</code>, not <code>conc</code> and\n<code>time_h</code>. Taking a max over an array containing <code>nan</code> gives you <code>nan</code>.</p>\n<p>Fill in <code>cmax</code>, <code>tmax</code>.\nMoves: <code>np.max</code>, <code>np.argmax</code>, and indexing with the position you get back.</p><pre class=\"code\"><code># Part b. Describe the peak.\n\ncmax = None   # YOUR CODE: highest observed concentration, mg/L\ntmax = None   # YOUR CODE: the time in hours at which cmax was observed\n\nprint(&quot;cmax:&quot;, cmax, &quot;mg/L&quot;)\nprint(&quot;tmax:&quot;, tmax, &quot;h&quot;)</code></pre>"
+   },
+   {
+    "key": "partc",
+    "label": "Part c",
+    "html": "<h2>Part c. Terminal half-life</h2>\n<p>Once absorption is finished, elimination is first order, meaning a constant\nfraction leaves per hour. On a log scale that is a straight line, so fitting\na line to <code>log(concentration)</code> against time recovers the rate constant.</p>\n<p>Slice off the last 4 measurable samples, fit the line, and convert. The fitted\nslope is negative because the drug is going away, and <code>lambda_z</code> is defined as\nthe positive version of it. The half-life is then <code>ln(2) / lambda_z</code>.</p>\n<p>Fill in <code>t_term</code>, <code>c_term</code>, <code>lambda_z</code>, <code>t_half</code>.\nMoves: <code>a[-4:]</code>, <code>np.log</code>, <code>np.polyfit(x, y, deg=1)</code> which returns\n<code>[slope, intercept]</code>.</p><pre class=\"code\"><code># Part c. Terminal half-life from the last 4 measurable samples.\n\nt_term = None     # YOUR CODE: last 4 measurable times\nc_term = None     # YOUR CODE: last 4 measurable concentrations\nlambda_z = None   # YOUR CODE: terminal rate constant, 1/h\nt_half = None     # YOUR CODE: terminal half-life, h\n\nprint(&quot;t_term  :&quot;, t_term)\nprint(&quot;c_term  :&quot;, c_term)\nprint(&quot;lambda_z:&quot;, lambda_z, &quot;1/h&quot;)\nprint(&quot;t_half  :&quot;, t_half, &quot;h&quot;)</code></pre>"
+   }
+  ]
+ },
+ {
+  "id": "W1D2",
+  "week": 1,
+  "day": 2,
+  "title": "A subject by time matrix: axis reductions, SD, and broadcasting",
+  "topic": "numpy: 2D arrays, axis reductions, sample SD, broadcasting",
+  "est": "20-30 min",
+  "colab": "https://colab.research.google.com/github/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d2_numpy_subject_matrix.ipynb",
+  "github": "https://github.com/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d2_numpy_subject_matrix.ipynb",
+  "solution": "https://github.com/dc00086-glitch/internship-prep/blob/main/solutions/week01/w1d2_numpy_subject_matrix_solution.ipynb",
+  "toolkit": "<h2>Toolkit for this problem</h2>\n<p>The one idea to get straight here is <strong>axis</strong>. In a 2D array, the axis you\nname is the one that <strong>disappears</strong>.</p>\n<ul>\n<li><code>axis=0</code> collapses the rows, so you are left with <strong>one value per column</strong>.</li>\n<li><code>axis=1</code> collapses the columns, so you are left with <strong>one value per row</strong>.</li>\n</ul>\n<p>In this problem rows are subjects and columns are timepoints, so \"per\ntimepoint\" means <code>axis=0</code>, and \"per subject\" means <code>axis=1</code>.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>make a 2D array</td>\n<td><code>np.array([[1, 2, 3], [4, 5, 6]])</code></td>\n</tr>\n<tr>\n<td>its size</td>\n<td><code>a.shape</code>, which reads <code>(rows, columns)</code></td>\n</tr>\n<tr>\n<td>mean of each column</td>\n<td><code>a.mean(axis=0)</code></td>\n</tr>\n<tr>\n<td>mean of each row</td>\n<td><code>a.mean(axis=1)</code></td>\n</tr>\n<tr>\n<td>biggest in each row</td>\n<td><code>a.max(axis=1)</code></td>\n</tr>\n<tr>\n<td>sample SD, with <code>n - 1</code></td>\n<td><code>a.std(axis=0, ddof=1)</code></td>\n</tr>\n<tr>\n<td>population SD, with <code>n</code></td>\n<td><code>a.std(axis=0)</code>, the default, which is <strong>not</strong> what we want</td>\n</tr>\n<tr>\n<td>keep the collapsed axis</td>\n<td><code>a.max(axis=1, keepdims=True)</code> gives shape <code>(rows, 1)</code></td>\n</tr>\n<tr>\n<td>divide every row by its own number</td>\n<td><code>a / a.max(axis=1, keepdims=True)</code></td>\n</tr>\n</tbody>\n</table>",
+  "sections": [
+   {
+    "key": "scenario",
+    "label": "Scenario",
+    "html": "<h2>Scenario</h2>\n<p>A single ascending dose study gave 8 healthy volunteers the same 50 mg oral\ndose. Each subject was sampled at the same 9 timepoints, so the data manager\nhands you one rectangular block: <code>conc</code> with shape <code>(8, 9)</code>, one <strong>row per\nsubject</strong> and one <strong>column per timepoint</strong>.</p>\n<p>Before anybody fits a model, the pharmacometrician reports the mean profile,\nhow variable the subjects are, and then overlays the profiles on a common\nscale so shapes can be compared without the amplitude getting in the way.</p>\n<p>Two house rules that apply to everything in this repo:</p>\n<ul>\n<li>Variability is reported as <strong>standard deviation (SD)</strong>, never SEM. SEM\n  shrinks as you add subjects, which hides exactly the between-subject\n  variability a pharmacometrician is paid to see.</li>\n<li>SD means the <strong>sample</strong> SD, with <code>n - 1</code> in the denominator. Note that\n  <code>np.std</code> defaults to <code>n</code>, so you have to say so explicitly.</li>\n</ul>"
+   },
+   {
+    "key": "concept",
+    "label": "How numpy works in two dimensions",
+    "html": "<h2>How numpy works in two dimensions</h2>\n<p><strong>A 2D array is a rectangle with a meaning attached to each direction.</strong> Here\nrows are subjects and columns are timepoints, so <code>conc[3, 5]</code> is subject 4 at\ntimepoint 6, counting from zero. <code>conc.shape</code> reports <code>(8, 9)</code>, always as\n<code>(rows, columns)</code>.</p>\n<p><strong>Reductions and the axis argument.</strong> A reduction is anything that turns many\nnumbers into fewer: mean, max, sum, std. On a 2D array you have to say which\ndirection to collapse, and that is what <code>axis</code> is for. The rule worth\nmemorising:</p>\n<blockquote>\n<p><strong>The axis you name is the one that disappears.</strong></p>\n</blockquote>\n<p>So <code>axis=0</code> destroys the row direction and leaves one value per column, and\n<code>axis=1</code> destroys the column direction and leaves one value per row. People\nget this backwards constantly, which is why the fix is always the same: print\n<code>.shape</code> of what came out and ask whether that length is the number of\nsubjects or the number of timepoints.</p>\n<p><strong>ddof, and why the default is wrong for you.</strong> The SD of a sample divides by\n<code>n - 1</code> rather than <code>n</code>, because you used the data itself to estimate the mean\nand that uses up one degree of freedom. Dividing by <code>n</code> gives a number that is\nsystematically too small. numpy defaults to <code>ddof=0</code>, dividing by <code>n</code>, which\nsuits physics and image processing where you often have the whole population.\nIt does not suit you, who almost always has a sample of subjects drawn from a\npopulation. So in numpy you must write <code>ddof=1</code> every single time. Pandas made\nthe opposite choice and already uses <code>n - 1</code>, which is a real inconsistency\nbetween the two libraries and a classic source of quietly wrong numbers.</p>\n<p><strong>Broadcasting.</strong> When you combine two arrays of different shapes, numpy tries\nto stretch the smaller one to fit, comparing shapes <strong>from the right</strong>. A\n<code>(8, 9)</code> and a <code>(9,)</code> line up, because 9 matches 9, and the <code>(9,)</code> is reused\nfor every row. A <code>(8, 9)</code> and an <code>(8,)</code> do <strong>not</strong> line up, because it checks\n9 against 8 and gives up. This is the error you will hit in part c, and it is\nnot a bug in your thinking: you want to divide each row by its own number, so\nyou have to say so by making that array <code>(8, 1)</code> instead of <code>(8,)</code>. Adding\n<code>keepdims=True</code> to the reduction does it, and so does <code>.reshape(-1, 1)</code>.</p>"
+   },
+   {
+    "key": "task",
+    "label": "Your task",
+    "html": "<h2>Your task</h2>\n<p>Three parts, worked one at a time.</p>\n<table>\n<thead>\n<tr>\n<th>Part</th>\n<th>What you work out</th>\n<th>Variables to fill in</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>a</td>\n<td>the mean profile, and each subject's own peak</td>\n<td><code>mean_by_time</code>, <code>cmax_by_subject</code></td>\n</tr>\n<tr>\n<td>b</td>\n<td>how much the subjects differ</td>\n<td><code>sd_by_time</code>, <code>cv_by_time</code></td>\n</tr>\n<tr>\n<td>c</td>\n<td>every subject rescaled to their own peak</td>\n<td><code>norm_conc</code></td>\n</tr>\n</tbody>\n</table>\n<p>Two house rules apply throughout. Variability is reported as <strong>SD</strong>, never\nSEM. And SD means the <strong>sample</strong> SD with <code>n - 1</code>, which numpy will not give\nyou unless you ask with <code>ddof=1</code>.</p>\n<p>Below this you will find the <strong>Setup</strong> cell, then a <strong>Toolkit</strong> cell that\ndemonstrates every move on a tiny made up example, then <strong>Part a</strong>, <strong>Part b</strong>\nand <strong>Part c</strong>, each with its own explanation and a cell to write in.</p>"
+   },
+   {
+    "key": "setup",
+    "label": "Setup",
+    "html": "<pre class=\"code\"><code>import numpy as np\n\nPROBLEM_ID = &quot;W1D2&quot;\nTOPIC = &quot;numpy: 2D arrays, axis reductions, sample SD, broadcasting&quot;\n\nrng = np.random.default_rng(1102)\n\nDOSE_MG = 50.0\nN_SUBJECTS = 8\ntime_h = np.array([0.5, 1.0, 2.0, 3.0, 4.0, 6.0, 8.0, 12.0, 24.0])\nsubject_id = np.arange(1, N_SUBJECTS + 1)\n\n# Between subject variability in clearance and volume, then assay noise on top.\n_V = 40.0 * rng.lognormal(0.0, 0.25, size=N_SUBJECTS)\n_kel = 0.10 * rng.lognormal(0.0, 0.30, size=N_SUBJECTS)\n_ka = 0.90 * rng.lognormal(0.0, 0.15, size=N_SUBJECTS)\n\n_V, _kel, _ka = _V[:, None], _kel[:, None], _ka[:, None]\n_t = time_h[None, :]\n_true = (0.85 * DOSE_MG * _ka) / (_V * (_ka - _kel)) * (np.exp(-_kel * _t) - np.exp(-_ka * _t))\nconc = np.round(_true * rng.lognormal(0.0, 0.10, size=_true.shape), 3)\n\nprint(&quot;conc shape:&quot;, conc.shape, &quot; (rows = subjects, columns = timepoints)&quot;)\nprint(&quot;subject_id:&quot;, subject_id)\nprint(&quot;time_h    :&quot;, time_h)\nprint(conc)</code></pre>"
+   },
+   {
+    "key": "toolkit",
+    "label": "Toolkit",
+    "html": "<h2>Toolkit for this problem</h2>\n<p>The one idea to get straight here is <strong>axis</strong>. In a 2D array, the axis you\nname is the one that <strong>disappears</strong>.</p>\n<ul>\n<li><code>axis=0</code> collapses the rows, so you are left with <strong>one value per column</strong>.</li>\n<li><code>axis=1</code> collapses the columns, so you are left with <strong>one value per row</strong>.</li>\n</ul>\n<p>In this problem rows are subjects and columns are timepoints, so \"per\ntimepoint\" means <code>axis=0</code>, and \"per subject\" means <code>axis=1</code>.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>make a 2D array</td>\n<td><code>np.array([[1, 2, 3], [4, 5, 6]])</code></td>\n</tr>\n<tr>\n<td>its size</td>\n<td><code>a.shape</code>, which reads <code>(rows, columns)</code></td>\n</tr>\n<tr>\n<td>mean of each column</td>\n<td><code>a.mean(axis=0)</code></td>\n</tr>\n<tr>\n<td>mean of each row</td>\n<td><code>a.mean(axis=1)</code></td>\n</tr>\n<tr>\n<td>biggest in each row</td>\n<td><code>a.max(axis=1)</code></td>\n</tr>\n<tr>\n<td>sample SD, with <code>n - 1</code></td>\n<td><code>a.std(axis=0, ddof=1)</code></td>\n</tr>\n<tr>\n<td>population SD, with <code>n</code></td>\n<td><code>a.std(axis=0)</code>, the default, which is <strong>not</strong> what we want</td>\n</tr>\n<tr>\n<td>keep the collapsed axis</td>\n<td><code>a.max(axis=1, keepdims=True)</code> gives shape <code>(rows, 1)</code></td>\n</tr>\n<tr>\n<td>divide every row by its own number</td>\n<td><code>a / a.max(axis=1, keepdims=True)</code></td>\n</tr>\n</tbody>\n</table><pre class=\"code\"><code>import numpy as np\n\n# A tiny made up example: 2 rows, 3 columns. Nothing here is the answer.\ndemo = np.array([[1.0, 2.0, 3.0],\n                 [4.0, 5.0, 9.0]])\n\nprint(&quot;demo:&quot;)\nprint(demo)\nprint(&quot;shape:&quot;, demo.shape, &quot; &lt;- (rows, columns)&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 1. the axis you name is the one that disappears ---&quot;)\nprint(&quot;demo.mean(axis=0) :&quot;, demo.mean(axis=0), &quot; length&quot;, demo.mean(axis=0).size,\n      &quot; &lt;- rows gone, one value per COLUMN&quot;)\nprint(&quot;demo.mean(axis=1) :&quot;, demo.mean(axis=1), &quot; length&quot;, demo.mean(axis=1).size,\n      &quot; &lt;- columns gone, one value per ROW&quot;)\nprint(&quot;demo.max(axis=1)  :&quot;, demo.max(axis=1), &quot; &lt;- biggest in each row&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 2. sample SD versus population SD ---&quot;)\nprint(&quot;std(axis=0)          :&quot;, np.round(demo.std(axis=0), 4), &quot; &lt;- divides by n, the default&quot;)\nprint(&quot;std(axis=0, ddof=1)  :&quot;, np.round(demo.std(axis=0, ddof=1), 4), &quot; &lt;- divides by n-1, what we want&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 3. why plain max(axis=1) will not divide cleanly ---&quot;)\ndemo_rowmax = demo.max(axis=1)\nprint(&quot;demo_rowmax       :&quot;, demo_rowmax, &quot; shape&quot;, demo_rowmax.shape)\ntry:\n    demo / demo_rowmax\nexcept ValueError as err:\n    print(&quot;demo / demo_rowmax fails with:&quot;, err)\n\nprint(&quot;&quot;)\nprint(&quot;--- 4. keepdims makes the shapes line up ---&quot;)\ndemo_rowmax_col = demo.max(axis=1, keepdims=True)\nprint(&quot;with keepdims     :&quot;, demo_rowmax_col.tolist(), &quot; shape&quot;, demo_rowmax_col.shape)\nprint(&quot;demo / that:&quot;)\nprint(demo / demo_rowmax_col, &quot; &lt;- every row now peaks at 1.0&quot;)\nprint(&quot;&quot;)\nprint(&quot;reshape(-1, 1) does the same thing:&quot;, demo_rowmax.reshape(-1, 1).shape)</code></pre>"
+   },
+   {
+    "key": "parta",
+    "label": "Part a",
+    "html": "<h2>Part a. Reduce along the right axis</h2>\n<p>Both of these are one-line reductions. The only thing to get right is which\ndirection you collapse, and the rule is that the axis you name is the one that\ndisappears.</p>\n<p>\"Mean at each timepoint\" means you want one value per column, so the rows have\nto go. \"Each subject's peak\" means one value per row, so the columns have to\ngo. If you are unsure which you got, print <code>.shape</code> of the result and ask\nwhether that length is 8 or 9.</p>\n<p>Fill in <code>mean_by_time</code> (length 9), <code>cmax_by_subject</code> (length 8).\nMoves: <code>conc.mean(axis=...)</code>, <code>conc.max(axis=...)</code>.</p><pre class=\"code\"><code># Part a. Reduce along the right axis.\n\nmean_by_time = None       # YOUR CODE: mean at each timepoint, length 9\ncmax_by_subject = None    # YOUR CODE: each subject&#x27;s peak, length 8\n\nprint(&quot;mean_by_time   &quot;, np.shape(mean_by_time), mean_by_time)\nprint(&quot;cmax_by_subject&quot;, np.shape(cmax_by_subject), cmax_by_subject)</code></pre>"
+   },
+   {
+    "key": "partb",
+    "label": "Part b",
+    "html": "<h2>Part b. Describe the variability</h2>\n<p>Same reduction direction as the mean in part a, since you want the spread\nacross subjects at each timepoint.</p>\n<p>Two things to be deliberate about. This is a <strong>sample</strong> of subjects, so the SD\ndivides by <code>n - 1</code>, and numpy will not do that unless you ask with <code>ddof=1</code>.\nAnd it is SD, not SEM, so nothing here should involve a square root of the\nnumber of subjects.</p>\n<p>CV% is just the SD expressed as a percentage of the mean, which makes\nvariability comparable across timepoints with very different magnitudes.</p>\n<p>Fill in <code>sd_by_time</code>, <code>cv_by_time</code>, both length 9.\nMoves: <code>conc.std(axis=..., ddof=1)</code>, then elementwise division and <code>* 100</code>.</p><pre class=\"code\"><code># Part b. Describe the variability. SD, not SEM. Sample SD, so ddof=1.\n\nsd_by_time = None   # YOUR CODE: sample SD across subjects at each timepoint\ncv_by_time = None   # YOUR CODE: 100 * SD / mean at each timepoint\n\nprint(&quot;sd_by_time&quot;, np.shape(sd_by_time), np.round(sd_by_time, 3) if sd_by_time is not None else None)\nprint(&quot;cv_by_time&quot;, np.shape(cv_by_time), np.round(cv_by_time, 1) if cv_by_time is not None else None)</code></pre>"
+   },
+   {
+    "key": "partc",
+    "label": "Part c",
+    "html": "<h2>Part c. Put every subject on a common scale</h2>\n<p>Normalising each profile to its own peak strips out the amplitude differences\nso you can compare the <strong>shape</strong> of absorption and elimination between\nsubjects. It is a standard first look before any modelling.</p>\n<p>You already have each subject's peak from part a, but dividing straight by it\nwill fail, because a <code>(8, 9)</code> and an <code>(8,)</code> do not line up: numpy matches\nshapes from the right and tries 9 against 8. Read the error when it happens,\nit is a useful one to recognise. Make the divisor <code>(8, 1)</code> and it works.</p>\n<p>Fill in <code>norm_conc</code>, shape <code>(8, 9)</code>, every row peaking at exactly 1.0.\nMoves: <code>conc.max(axis=1, keepdims=True)</code>, or <code>.reshape(-1, 1)</code>, then divide.</p><pre class=\"code\"><code># Part c. Normalise each subject&#x27;s profile to that subject&#x27;s own Cmax.\n# Use broadcasting, not a for loop.\n\nnorm_conc = None   # YOUR CODE: shape (8, 9), every row peaking at 1.0\n\nif norm_conc is not None:\n    print(&quot;norm_conc shape:&quot;, np.shape(norm_conc))\n    print(&quot;max of each row:&quot;, np.round(np.max(norm_conc, axis=1), 6))</code></pre>"
+   }
+  ]
+ },
+ {
+  "id": "W1D3",
+  "week": 1,
+  "day": 3,
+  "title": "Rat PK study: filter, summarise by group, and join the dosing record",
+  "topic": "pandas: filtering, derived columns, groupby.agg, left merge",
+  "est": "20-30 min",
+  "colab": "https://colab.research.google.com/github/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d3_pandas_wrangle_merge.ipynb",
+  "github": "https://github.com/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d3_pandas_wrangle_merge.ipynb",
+  "solution": "https://github.com/dc00086-glitch/internship-prep/blob/main/solutions/week01/w1d3_pandas_wrangle_merge_solution.ipynb",
+  "toolkit": "<h2>Toolkit for this problem</h2>\n<p>A DataFrame is a table. Each column has a name, and you pull one out with\n<code>df[\"NAME\"]</code>. Everything below runs on a tiny made up table, so none of it is\nthe answer.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>look at the first rows</td>\n<td><code>df.head()</code></td>\n</tr>\n<tr>\n<td>its size</td>\n<td><code>df.shape</code>, which reads <code>(rows, columns)</code></td>\n</tr>\n<tr>\n<td>the column names</td>\n<td><code>df.columns</code></td>\n</tr>\n<tr>\n<td>one column</td>\n<td><code>df[\"CONC\"]</code></td>\n</tr>\n<tr>\n<td>how many distinct values</td>\n<td><code>df[\"ANIMAL\"].nunique()</code></td>\n</tr>\n<tr>\n<td>keep some rows</td>\n<td><code>df[df[\"TIME_H\"] &gt; 0]</code></td>\n</tr>\n<tr>\n<td>add a column</td>\n<td><code>df[\"NEW\"] = df[\"A\"] / df[\"B\"]</code></td>\n</tr>\n<tr>\n<td>mean and SD per group</td>\n<td><code>df.groupby([\"G\", \"T\"])[\"CONC\"].agg([\"mean\", \"std\"])</code></td>\n</tr>\n<tr>\n<td>turn group keys back into columns</td>\n<td><code>.reset_index()</code></td>\n</tr>\n<tr>\n<td>rename columns</td>\n<td><code>.rename(columns={\"mean\": \"CONC_MEAN\"})</code></td>\n</tr>\n<tr>\n<td>join two tables</td>\n<td><code>pd.merge(left, right, on=\"ANIMAL\", how=\"left\")</code></td>\n</tr>\n<tr>\n<td>count the gaps</td>\n<td><code>df[\"COL\"].isna().sum()</code></td>\n</tr>\n</tbody>\n</table>\n<p>Two things worth knowing before you start.</p>\n<ul>\n<li>Pandas <code>std</code> already divides by <code>n - 1</code>, so it is the sample SD you want.\n  This is the opposite of numpy, where you have to ask with <code>ddof=1</code>.</li>\n<li><code>how=\"left\"</code> keeps every row of the left table. <code>how=\"inner\"</code> keeps only\n  rows that matched, and quietly drops the rest. Always compare <code>len()</code>\n  before and after a merge.</li>\n</ul>",
+  "sections": [
+   {
+    "key": "scenario",
+    "label": "Scenario",
+    "html": "<h2>Scenario</h2>\n<p>You have the raw bioanalytical output from a rat single dose PK study. Twelve\nanimals in three dose groups were sampled at 8 timepoints including a predose\nblank, which gives you 96 rows in long format (<code>pk</code>).</p>\n<p>The study director separately sends the dosing record (<code>demo</code>): sex, body\nweight on the day of dosing, and the actual milligrams each animal received.\nNominal dosing was 1, 3 and 10 mg/kg, but the actual dose depends on each\nanimal's weight, so the real mg/kg has to be recomputed from the record.</p>\n<p>One thing the study director has not mentioned: the dosing record is not\ncomplete. Finding that out yourself, rather than after you have fitted a\nmodel, is most of the point of this problem. A join that silently drops rows is\none of the most common ways a PK analysis goes quietly wrong.</p>"
+   },
+   {
+    "key": "concept",
+    "label": "How pandas works, in two minutes",
+    "html": "<h2>How pandas works, in two minutes</h2>\n<p><strong>A DataFrame is a dictionary of columns, not a grid of cells.</strong> That sounds\npedantic but it explains most of the behaviour. Each column is a <strong>Series</strong>: a\nnumpy array plus an <strong>index</strong>, which is a set of labels for the rows. So\n<code>df[\"CONC\"]</code> hands you one Series, and arithmetic on it is elementwise, just\nlike numpy. Each column has its own type, which is why one table can hold\nanimal names, group labels and concentrations at the same time, something a\nnumpy array cannot do.</p>\n<p><strong>The index is the part people trip over.</strong> Every DataFrame has row labels,\nand by default they are 0, 1, 2 and so on. They look like positions but they\nare labels, and they stick to their rows. Filter out some rows and the\nsurvivors keep their original numbers, so the index now has gaps. That is\nusually harmless, but it matters after a <code>groupby</code>, where the grouping keys\nget <em>moved into the index</em>. The columns you grouped by then stop being\ncolumns, and anything downstream looking for them fails. <code>.reset_index()</code>\npushes them back out into ordinary columns, which is why you will see it after\nalmost every groupby.</p>\n<p><strong>Split, apply, combine.</strong> That is the whole model behind <code>groupby</code>. Pandas\nsplits the table into one chunk per group, applies your summary to each chunk,\nthen stacks the answers back into a new table. <code>df.groupby([\"GROUP\",\n\"TIME_H\"])[\"CONC\"].agg([\"mean\", \"std\"])</code> reads exactly that way: split by\ngroup and time, look at the concentration column, compute mean and SD of each\nchunk. You get one row per combination that actually occurs.</p>\n<p><strong>Joins, and the one that bites.</strong> <code>pd.merge</code> matches rows between two tables\non a shared column. The <code>how</code> argument decides what happens to rows that find\nno partner:</p>\n<ul>\n<li><code>how=\"left\"</code> keeps every row of the left table, filling the missing columns\n  with <code>NaN</code>. You can see what is missing.</li>\n<li><code>how=\"inner\"</code>, which is the <strong>default</strong>, keeps only rows that matched and\n  silently discards the rest. No error, no warning, just a smaller table.</li>\n</ul>\n<p>That default is why a PK analysis can lose an entire animal and still run to\ncompletion with a plausible-looking answer. The habit that protects you is\nboring and absolute: print <code>len()</code> before and after every merge, and if the\nnumber changed, know why. Rows can also go <em>up</em>, if the right-hand table has\nmore than one row per key, which quietly duplicates your data.</p>\n<p><strong>One more pandas quirk.</strong> Pandas <code>std()</code> already divides by <code>n - 1</code>, unlike\nnumpy, which needs <code>ddof=1</code>. Two libraries, two defaults, and nothing warns\nyou.</p>"
+   },
+   {
+    "key": "task",
+    "label": "Your task",
+    "html": "<h2>Your task</h2>\n<p>Three parts, worked one at a time.</p>\n<table>\n<thead>\n<tr>\n<th>Part</th>\n<th>What you work out</th>\n<th>Variables to fill in</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>a</td>\n<td>how big the dataset really is, and the post-dose rows</td>\n<td><code>n_animals</code>, <code>df_post</code></td>\n</tr>\n<tr>\n<td>b</td>\n<td>the mean and SD profile for each dose group</td>\n<td><code>summary</code></td>\n</tr>\n<tr>\n<td>c</td>\n<td>the dosing record joined on, and what is missing from it</td>\n<td><code>pk_merged</code>, <code>n_missing_weight</code></td>\n</tr>\n</tbody>\n</table>\n<p>Below this you will find the <strong>Setup</strong> cell, then a <strong>Toolkit</strong> cell that\ndemonstrates every move on a tiny made up example, then <strong>Part a</strong>, <strong>Part b</strong>\nand <strong>Part c</strong>, each with its own explanation and a cell to write in.</p>"
+   },
+   {
+    "key": "setup",
+    "label": "Setup",
+    "html": "<pre class=\"code\"><code>import numpy as np\nimport pandas as pd\n\nPROBLEM_ID = &quot;W1D3&quot;\nTOPIC = &quot;pandas: filtering, derived columns, groupby.agg, left merge&quot;\n\nrng = np.random.default_rng(1103)\n\nN_ANIMALS = 12\ntimes = np.array([0.0, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0, 24.0])\nanimals = np.array([&quot;R%02d&quot; % i for i in range(1, N_ANIMALS + 1)])\ngroups = np.repeat([&quot;Low&quot;, &quot;Mid&quot;, &quot;High&quot;], 4)\nnominal_mg_kg = np.repeat([1.0, 3.0, 10.0], 4)\nsex = np.tile([&quot;M&quot;, &quot;M&quot;, &quot;F&quot;, &quot;F&quot;], 3)\n\nbw_g = np.round(250.0 + rng.normal(0.0, 18.0, size=N_ANIMALS), 0)\n# Syringe accuracy means the delivered dose is close to, but not exactly, nominal.\ndose_mg = np.round(nominal_mg_kg * bw_g / 1000.0 * rng.lognormal(0.0, 0.02, size=N_ANIMALS), 4)\n\n# Between animal variability, one compartment oral, concentrations in ng/mL.\n_V = 0.20 * rng.lognormal(0.0, 0.22, size=N_ANIMALS)\n_kel = 0.30 * rng.lognormal(0.0, 0.25, size=N_ANIMALS)\n_ka = 1.50 * rng.lognormal(0.0, 0.15, size=N_ANIMALS)\n_coef = (0.90 * dose_mg * _ka) / (_V * (_ka - _kel))\n_true = 1000.0 * _coef[:, None] * (np.exp(-_kel[:, None] * times[None, :])\n                                  - np.exp(-_ka[:, None] * times[None, :]))\n_obs = np.round(_true * rng.lognormal(0.0, 0.12, size=_true.shape), 1)\n\npk = pd.DataFrame({\n    &quot;ANIMAL&quot;: np.repeat(animals, times.size),\n    &quot;GROUP&quot;: np.repeat(groups, times.size),\n    &quot;TIME_H&quot;: np.tile(times, N_ANIMALS),\n    &quot;CONC_NG_ML&quot;: _obs.ravel(),\n})\n\n# The dosing record the study director sent over.\n_in_record = animals != &quot;R07&quot;\ndemo = pd.DataFrame({\n    &quot;ANIMAL&quot;: animals[_in_record],\n    &quot;SEX&quot;: sex[_in_record],\n    &quot;BODYWEIGHT_G&quot;: bw_g[_in_record],\n    &quot;DOSE_MG&quot;: dose_mg[_in_record],\n})\n\nprint(&quot;pk:&quot;, pk.shape)\nprint(pk.head(10))\nprint(&quot;&quot;)\nprint(&quot;demo:&quot;, demo.shape)\nprint(demo.head())</code></pre>"
+   },
+   {
+    "key": "toolkit",
+    "label": "Toolkit",
+    "html": "<h2>Toolkit for this problem</h2>\n<p>A DataFrame is a table. Each column has a name, and you pull one out with\n<code>df[\"NAME\"]</code>. Everything below runs on a tiny made up table, so none of it is\nthe answer.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>look at the first rows</td>\n<td><code>df.head()</code></td>\n</tr>\n<tr>\n<td>its size</td>\n<td><code>df.shape</code>, which reads <code>(rows, columns)</code></td>\n</tr>\n<tr>\n<td>the column names</td>\n<td><code>df.columns</code></td>\n</tr>\n<tr>\n<td>one column</td>\n<td><code>df[\"CONC\"]</code></td>\n</tr>\n<tr>\n<td>how many distinct values</td>\n<td><code>df[\"ANIMAL\"].nunique()</code></td>\n</tr>\n<tr>\n<td>keep some rows</td>\n<td><code>df[df[\"TIME_H\"] &gt; 0]</code></td>\n</tr>\n<tr>\n<td>add a column</td>\n<td><code>df[\"NEW\"] = df[\"A\"] / df[\"B\"]</code></td>\n</tr>\n<tr>\n<td>mean and SD per group</td>\n<td><code>df.groupby([\"G\", \"T\"])[\"CONC\"].agg([\"mean\", \"std\"])</code></td>\n</tr>\n<tr>\n<td>turn group keys back into columns</td>\n<td><code>.reset_index()</code></td>\n</tr>\n<tr>\n<td>rename columns</td>\n<td><code>.rename(columns={\"mean\": \"CONC_MEAN\"})</code></td>\n</tr>\n<tr>\n<td>join two tables</td>\n<td><code>pd.merge(left, right, on=\"ANIMAL\", how=\"left\")</code></td>\n</tr>\n<tr>\n<td>count the gaps</td>\n<td><code>df[\"COL\"].isna().sum()</code></td>\n</tr>\n</tbody>\n</table>\n<p>Two things worth knowing before you start.</p>\n<ul>\n<li>Pandas <code>std</code> already divides by <code>n - 1</code>, so it is the sample SD you want.\n  This is the opposite of numpy, where you have to ask with <code>ddof=1</code>.</li>\n<li><code>how=\"left\"</code> keeps every row of the left table. <code>how=\"inner\"</code> keeps only\n  rows that matched, and quietly drops the rest. Always compare <code>len()</code>\n  before and after a merge.</li>\n</ul><pre class=\"code\"><code>import numpy as np\nimport pandas as pd\n\n# A tiny made up table. Nothing here is the answer to the problem.\ndemo_tbl = pd.DataFrame({\n    &quot;SUBJ&quot;: [&quot;S1&quot;, &quot;S1&quot;, &quot;S2&quot;, &quot;S2&quot;, &quot;S3&quot;, &quot;S3&quot;],\n    &quot;ARM&quot;:  [&quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;A&quot;, &quot;B&quot;, &quot;B&quot;],\n    &quot;TIME&quot;: [0.0, 1.0, 0.0, 1.0, 0.0, 1.0],\n    &quot;VAL&quot;:  [0.0, 10.0, 0.0, 14.0, 0.0, 30.0],\n})\nprint(&quot;demo_tbl:&quot;)\nprint(demo_tbl)\nprint(&quot;shape:&quot;, demo_tbl.shape, &quot;   columns:&quot;, list(demo_tbl.columns))\n\nprint(&quot;&quot;)\nprint(&quot;--- 1. one column, and counting distinct values ---&quot;)\nprint(&quot;demo_tbl[&#x27;VAL&#x27;]      :&quot;, list(demo_tbl[&quot;VAL&quot;]))\nprint(&quot;distinct subjects:&quot;, demo_tbl[&quot;SUBJ&quot;].nunique())\n\nprint(&quot;&quot;)\nprint(&quot;--- 2. keeping some rows ---&quot;)\ndemo_post = demo_tbl[demo_tbl[&quot;TIME&quot;] &gt; 0]\nprint(demo_post)\nprint(&quot;rows before:&quot;, len(demo_tbl), &quot; rows after:&quot;, len(demo_post))\n\nprint(&quot;&quot;)\nprint(&quot;--- 3. mean and SD per group, then flattened ---&quot;)\ndemo_summary = (demo_post\n                .groupby([&quot;ARM&quot;, &quot;TIME&quot;])[&quot;VAL&quot;]\n                .agg([&quot;mean&quot;, &quot;std&quot;])\n                .reset_index()\n                .rename(columns={&quot;mean&quot;: &quot;VAL_MEAN&quot;, &quot;std&quot;: &quot;VAL_SD&quot;}))\nprint(demo_summary)\nprint(&quot;note: ARM and TIME are ordinary columns now, thanks to reset_index()&quot;)\nprint(&quot;note: pandas std already uses n-1, so VAL_SD is the sample SD&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 4. joining a second table, and what a missing row does ---&quot;)\ndemo_info = pd.DataFrame({&quot;SUBJ&quot;: [&quot;S1&quot;, &quot;S2&quot;], &quot;WEIGHT_G&quot;: [300.0, 280.0]})\nprint(&quot;demo_info has no row for S3:&quot;)\nprint(demo_info)\n\ndemo_left = pd.merge(demo_tbl, demo_info, on=&quot;SUBJ&quot;, how=&quot;left&quot;)\ndemo_inner = pd.merge(demo_tbl, demo_info, on=&quot;SUBJ&quot;, how=&quot;inner&quot;)\nprint(&quot;&quot;)\nprint(&quot;rows in demo_tbl        :&quot;, len(demo_tbl))\nprint(&quot;rows after how=left :&quot;, len(demo_left), &quot; &lt;- every row kept, S3 gets NaN&quot;)\nprint(&quot;rows after how=inner:&quot;, len(demo_inner), &quot; &lt;- S3 silently dropped&quot;)\nprint(&quot;&quot;)\nprint(demo_left)\nprint(&quot;&quot;)\nprint(&quot;rows with no weight :&quot;, int(demo_left[&quot;WEIGHT_G&quot;].isna().sum()))\n\nprint(&quot;&quot;)\nprint(&quot;--- 5. adding a column built from other columns ---&quot;)\ndemo_left[&quot;VAL_PER_KG&quot;] = demo_left[&quot;VAL&quot;] / (demo_left[&quot;WEIGHT_G&quot;] / 1000.0)\nprint(demo_left[[&quot;SUBJ&quot;, &quot;VAL&quot;, &quot;WEIGHT_G&quot;, &quot;VAL_PER_KG&quot;]])</code></pre>"
+   },
+   {
+    "key": "parta",
+    "label": "Part a",
+    "html": "<h2>Part a. Get your bearings and drop the predose samples</h2>\n<p>Before anything else, find out how big the dataset really is. Counting rows is\nnot counting animals: each animal appears once per timepoint, so the row count\nis a multiple of the animal count.</p>\n<p>Then drop the predose samples. They are all zero by definition and they would\ndrag every mean down and inflate every SD if you left them in a summary.</p>\n<p>Fill in <code>n_animals</code>, and <code>df_post</code> which keeps all four columns.\nMoves: <code>df[\"COL\"].nunique()</code>, and boolean filtering <code>df[df[\"COL\"] &gt; 0]</code>.</p><pre class=\"code\"><code># Part a. Count the animals and keep only post-dose rows.\n\nn_animals = None   # YOUR CODE: how many distinct animals are in pk\ndf_post = None     # YOUR CODE: the rows of pk with TIME_H greater than 0\n\nprint(&quot;n_animals:&quot;, n_animals)\nprint(&quot;df_post shape:&quot;, None if df_post is None else df_post.shape)</code></pre>"
+   },
+   {
+    "key": "partb",
+    "label": "Part b",
+    "html": "<h2>Part b. Mean and SD profile per dose group</h2>\n<p>This is split, apply, combine: pandas splits the table into one chunk per\ngroup and timepoint, computes your statistics on each chunk, and stacks the\nanswers back up.</p>\n<p>Two details decide whether the result is usable downstream. The grouping keys\ncome back sitting in the <strong>index</strong>, not as columns, so <code>.reset_index()</code> is\nneeded to flatten them. And the aggregation names come out as <code>mean</code> and\n<code>std</code>, so rename them.</p>\n<p>Pandas <code>std</code> already divides by <code>n - 1</code>, so you do not need <code>ddof</code> here. That\nis the opposite of numpy.</p>\n<p>Build <code>summary</code> from <code>df_post</code>, one row per <code>GROUP</code> and <code>TIME_H</code> combination,\nwith exactly these four columns, named exactly like this:</p>\n<table>\n<thead>\n<tr>\n<th>column</th>\n<th>meaning</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>GROUP</code></td>\n<td>dose group</td>\n</tr>\n<tr>\n<td><code>TIME_H</code></td>\n<td>nominal time in hours</td>\n</tr>\n<tr>\n<td><code>CONC_MEAN</code></td>\n<td>mean concentration in that group at that time</td>\n</tr>\n<tr>\n<td><code>CONC_SD</code></td>\n<td><strong>sample</strong> SD of concentration in that group at that time</td>\n</tr>\n</tbody>\n</table>\n<p>It has to be a flat DataFrame, so <code>GROUP</code> and <code>TIME_H</code> are ordinary columns\nand not an index. SD, never SEM.</p>\n<p>Moves: <code>.groupby([...])[\"COL\"].agg([\"mean\", \"std\"])</code>, <code>.reset_index()</code>,\n<code>.rename(columns={...})</code>.</p><pre class=\"code\"><code># Part b. Mean and sample SD per group per timepoint, from df_post.\n# Columns must come out named GROUP, TIME_H, CONC_MEAN, CONC_SD.\n\nsummary = None   # YOUR CODE\n\nprint(summary)</code></pre>"
+   },
+   {
+    "key": "partc",
+    "label": "Part c",
+    "html": "<h2>Part c. Join the dosing record and recover the real mg/kg</h2>\n<p>Start from <code>pk</code>, the full table, not <code>df_post</code>.</p>\n<p>The dosing record is incomplete, and how you join decides whether you find\nthat out. The default join is <code>inner</code>, which keeps only matched rows and\ndiscards the rest with no error and no warning. Use a <strong>left</strong> join so every\nrow of <code>pk</code> survives and the gaps show up as <code>NaN</code> where you can see them.</p>\n<p>Then check: print <code>len(pk)</code> and <code>len(pk_merged)</code> and make sure they agree. Get\ninto this habit now. A merge that silently drops an animal is one of the most\ncommon ways a PK analysis produces a confident wrong answer.</p>\n<p>Body weight is recorded in <strong>grams</strong> and the dose in milligrams, so convert\nbefore dividing. Sanity check the result against the nominal 1, 3 and 10\nmg/kg.</p>\n<p>Fill in <code>pk_merged</code>, which is <code>pk</code> joined to <code>demo</code> on <code>ANIMAL</code> keeping every\nrow of <code>pk</code>, plus a new <code>DOSE_MG_PER_KG</code> column. And <code>n_missing_weight</code>, how\nmany rows end up with no body weight.</p>\n<p>Moves: <code>pd.merge(left, right, on=..., how=\"left\")</code>, arithmetic between\ncolumns, <code>df[\"COL\"].isna().sum()</code>.</p><pre class=\"code\"><code># Part c. Join the dosing record onto pk without losing any rows.\n\npk_merged = None         # YOUR CODE: pk joined to demo, plus a DOSE_MG_PER_KG column\nn_missing_weight = None  # YOUR CODE: rows of pk_merged with no body weight\n\nprint(&quot;rows in pk       :&quot;, len(pk))\nprint(&quot;rows in pk_merged:&quot;, None if pk_merged is None else len(pk_merged))\nprint(&quot;n_missing_weight :&quot;, n_missing_weight)\nif pk_merged is not None:\n    print(pk_merged.head())</code></pre>"
+   }
+  ]
+ },
+ {
+  "id": "W1D4",
+  "week": 1,
+  "day": 4,
+  "title": "A collaborator's spreadsheet: reshape wide to tidy and back again",
+  "topic": "pandas: melt, string cleaning, duplicates, pivot",
+  "est": "20-30 min",
+  "colab": "https://colab.research.google.com/github/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d4_pandas_tidy_wide.ipynb",
+  "github": "https://github.com/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d4_pandas_tidy_wide.ipynb",
+  "solution": "https://github.com/dc00086-glitch/internship-prep/blob/main/solutions/week01/w1d4_pandas_tidy_wide_solution.ipynb",
+  "toolkit": "<h2>Toolkit for this problem</h2>\n<p>Wide means one row per subject and one column per timepoint, which is how\nspreadsheets look. Tidy means one row per observation, which is what every\nplotting and modelling tool wants. <code>melt</code> goes wide to tidy, <code>pivot</code> goes\nback.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>wide to tidy</td>\n<td><code>df.melt(id_vars=[\"ID\"], var_name=\"TIME_LABEL\", value_name=\"VAL\")</code></td>\n</tr>\n<tr>\n<td>strip text from a column</td>\n<td><code>df[\"COL\"].str.replace(\"T_\", \"\", regex=False)</code></td>\n</tr>\n<tr>\n<td>text to number</td>\n<td><code>.astype(float)</code></td>\n</tr>\n<tr>\n<td>drop a column</td>\n<td><code>df.drop(columns=[\"COL\"])</code></td>\n</tr>\n<tr>\n<td>sort</td>\n<td><code>df.sort_values([\"ID\", \"TIME\"])</code></td>\n</tr>\n<tr>\n<td>renumber the index 0, 1, 2</td>\n<td><code>df.reset_index(drop=True)</code></td>\n</tr>\n<tr>\n<td>flag repeated rows</td>\n<td><code>df.duplicated()</code> is True for every repeat after the first</td>\n</tr>\n<tr>\n<td>count them</td>\n<td><code>df.duplicated().sum()</code></td>\n</tr>\n<tr>\n<td>remove them</td>\n<td><code>df.drop_duplicates()</code></td>\n</tr>\n<tr>\n<td>tidy back to wide</td>\n<td><code>df.pivot(index=\"ID\", columns=\"TIME\", values=\"VAL\")</code></td>\n</tr>\n</tbody>\n</table>\n<p>Two traps this problem is built around.</p>\n<ul>\n<li><code>id_vars</code> lists the columns to <strong>keep as they are</strong>. Every other column gets\n  folded into the new label and value columns.</li>\n<li>Sorting on the <strong>text</strong> <code>T_4</code> and <code>T_24</code> puts <code>T_24</code> first, because text\n  sorts character by character. Sorting on the <strong>number</strong> 4 and 24 does the\n  right thing. This is exactly why you convert before you sort.</li>\n</ul>",
+  "sections": [
+   {
+    "key": "scenario",
+    "label": "Scenario",
+    "html": "<h2>Scenario</h2>\n<p>A collaborator has emailed you the target engagement readout from a mouse PD\nstudy: percent inhibition of the target enzyme in whole blood, at 6 timepoints\nafter a single oral dose, for 10 animals in two groups.</p>\n<p>It arrives the way these things always arrive: as a spreadsheet laid out for\nhuman eyes, with <strong>one row per animal and one column per timepoint</strong>\n(<code>T_0</code>, <code>T_1</code>, <code>T_2</code>, and so on). Every plotting and modelling tool you will\nuse wants the opposite shape, one row per observation, so the first job is\nalways the same reshape.</p>\n<p>There is also something wrong with the file. The collaborator re-sent one\nanimal's record after a transcription fix and the two copies both ended up in\nthe sheet. You will not notice until part c, when <code>pivot</code> refuses to run. That\nis the normal way you find out.</p>"
+   },
+   {
+    "key": "concept",
+    "label": "Why tidy data, and how reshaping works",
+    "html": "<h2>Why tidy data, and how reshaping works</h2>\n<p><strong>Two layouts for the same numbers.</strong> A spreadsheet laid out for human eyes is\nusually <strong>wide</strong>: one row per subject, and one column per timepoint. It is\ncompact and easy to read down a page. The alternative is <strong>tidy</strong>, sometimes\ncalled long: one row per observation, with columns that say what each\nobservation is. The same 60 numbers become 60 rows instead of 10 rows by 6\ncolumns.</p>\n<p><strong>Why every tool wants tidy.</strong> In a wide table, the timepoint is stored in the\n<em>column name</em>, which is metadata, not data. You cannot group by it, filter on\nit, do arithmetic with it, or put it on an axis, because as far as the\nsoftware is concerned it is just a label. The moment you want \"mean by\ntimepoint\" or \"plot concentration against time\", you need time to be a column\nof values. Tidy layout makes every variable a column, so ggplot2, seaborn,\n<code>groupby</code>, <code>lme4</code> and every modelling tool can all find what they need the\nsame way. This is why reshaping is the first thing you do with a collaborator\nfile, every time, and why it is worth being quick at.</p>\n<p><strong>melt and pivot are inverses.</strong> <code>melt</code> takes a set of columns and folds their\nnames into one column and their values into another. <code>id_vars</code> is the list of\ncolumns to leave alone; everything else gets folded. <code>pivot</code> does the reverse,\nspreading one column's values out into new columns.</p>\n<p><strong>Why pivot can fail when melt cannot.</strong> Going wide to tidy is always\npossible. Going back is not, because wide format has exactly one cell per\n(row, column) pair. If your tidy data has two rows claiming the same animal\nand the same timepoint, pivot has no way to choose, so it raises <code>Index\ncontains duplicate entries</code>. That error is not a nuisance, it is the reshape\ntelling you the data has a problem you had not noticed. Here the cause is a\nrecord that got sent twice. Elsewhere it could be two real measurements that\nneed averaging, which is what <code>pivot_table</code> is for. Which one you are looking\nat is a scientific judgment, not a coding one, so look before you reach for\neither fix.</p>\n<p><strong>Text that looks like numbers.</strong> After melting, your timepoints are strings\nlike <code>\"T_24\"</code>. Sorting strings compares them character by character, so\n<code>\"T_24\"</code> lands before <code>\"T_4\"</code> because <code>2</code> comes before <code>4</code>. Convert to a\nnumber before you sort, or your profiles come out scrambled in a way that is\nsurprisingly easy to miss on a plot.</p>"
+   },
+   {
+    "key": "task",
+    "label": "Your task",
+    "html": "<h2>Your task</h2>\n<p>Three parts, worked one at a time.</p>\n<table>\n<thead>\n<tr>\n<th>Part</th>\n<th>What you work out</th>\n<th>Variables to fill in</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>a</td>\n<td>the wide table reshaped into tidy</td>\n<td><code>tidy</code></td>\n</tr>\n<tr>\n<td>b</td>\n<td>a numeric time column, sorted, index renumbered</td>\n<td><code>tidy_clean</code></td>\n</tr>\n<tr>\n<td>c</td>\n<td>the repeated rows, and the pivot back to wide</td>\n<td><code>n_dup_rows</code>, <code>wide_again</code></td>\n</tr>\n</tbody>\n</table>\n<p>Below this you will find the <strong>Setup</strong> cell, then a <strong>Toolkit</strong> cell that\ndemonstrates every move on a tiny made up example, then <strong>Part a</strong>, <strong>Part b</strong>\nand <strong>Part c</strong>, each with its own explanation and a cell to write in.</p>"
+   },
+   {
+    "key": "setup",
+    "label": "Setup",
+    "html": "<pre class=\"code\"><code>import numpy as np\nimport pandas as pd\n\nPROBLEM_ID = &quot;W1D4&quot;\nTOPIC = &quot;pandas: melt, string cleaning, duplicates, pivot&quot;\n\nrng = np.random.default_rng(1104)\n\ntimes = np.array([0.0, 1.0, 2.0, 4.0, 8.0, 24.0])\ntime_cols = [&quot;T_%g&quot; % t for t in times]\nanimals = [&quot;M%02d&quot; % i for i in range(1, 11)]\ngroups = [&quot;Vehicle&quot;] * 5 + [&quot;Drug&quot;] * 5\n\n_rows = []\nfor _animal, _group in zip(animals, groups):\n    if _group == &quot;Drug&quot;:\n        _imax = 105.0 * rng.lognormal(0.0, 0.12)\n        _signal = _imax * (np.exp(-0.08 * times) - np.exp(-1.50 * times))\n    else:\n        _signal = np.zeros_like(times) + 2.0\n    _obs = np.clip(_signal + rng.normal(0.0, 3.0, size=times.size), 0.0, 100.0)\n    _obs[0] = np.clip(rng.normal(1.5, 1.5), 0.0, 100.0)   # predose, no inhibition yet\n    _rows.append(np.round(_obs, 1))\n\nwide = pd.DataFrame(np.array(_rows), columns=time_cols)\nwide.insert(0, &quot;GROUP&quot;, groups)\nwide.insert(0, &quot;ANIMAL&quot;, animals)\n\n# The collaborator re-sent M04 after a transcription fix, and both copies stayed in.\nwide = pd.concat([wide, wide[wide[&quot;ANIMAL&quot;] == &quot;M04&quot;]], ignore_index=True)\n\nprint(&quot;wide:&quot;, wide.shape)\nprint(wide)</code></pre>"
+   },
+   {
+    "key": "toolkit",
+    "label": "Toolkit",
+    "html": "<h2>Toolkit for this problem</h2>\n<p>Wide means one row per subject and one column per timepoint, which is how\nspreadsheets look. Tidy means one row per observation, which is what every\nplotting and modelling tool wants. <code>melt</code> goes wide to tidy, <code>pivot</code> goes\nback.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>wide to tidy</td>\n<td><code>df.melt(id_vars=[\"ID\"], var_name=\"TIME_LABEL\", value_name=\"VAL\")</code></td>\n</tr>\n<tr>\n<td>strip text from a column</td>\n<td><code>df[\"COL\"].str.replace(\"T_\", \"\", regex=False)</code></td>\n</tr>\n<tr>\n<td>text to number</td>\n<td><code>.astype(float)</code></td>\n</tr>\n<tr>\n<td>drop a column</td>\n<td><code>df.drop(columns=[\"COL\"])</code></td>\n</tr>\n<tr>\n<td>sort</td>\n<td><code>df.sort_values([\"ID\", \"TIME\"])</code></td>\n</tr>\n<tr>\n<td>renumber the index 0, 1, 2</td>\n<td><code>df.reset_index(drop=True)</code></td>\n</tr>\n<tr>\n<td>flag repeated rows</td>\n<td><code>df.duplicated()</code> is True for every repeat after the first</td>\n</tr>\n<tr>\n<td>count them</td>\n<td><code>df.duplicated().sum()</code></td>\n</tr>\n<tr>\n<td>remove them</td>\n<td><code>df.drop_duplicates()</code></td>\n</tr>\n<tr>\n<td>tidy back to wide</td>\n<td><code>df.pivot(index=\"ID\", columns=\"TIME\", values=\"VAL\")</code></td>\n</tr>\n</tbody>\n</table>\n<p>Two traps this problem is built around.</p>\n<ul>\n<li><code>id_vars</code> lists the columns to <strong>keep as they are</strong>. Every other column gets\n  folded into the new label and value columns.</li>\n<li>Sorting on the <strong>text</strong> <code>T_4</code> and <code>T_24</code> puts <code>T_24</code> first, because text\n  sorts character by character. Sorting on the <strong>number</strong> 4 and 24 does the\n  right thing. This is exactly why you convert before you sort.</li>\n</ul><pre class=\"code\"><code>import numpy as np\nimport pandas as pd\n\n# A tiny made up wide table, with one row repeated on purpose.\ndemo_wide = pd.DataFrame({\n    &quot;ID&quot;:  [&quot;A&quot;, &quot;B&quot;, &quot;A&quot;],\n    &quot;ARM&quot;: [&quot;ctl&quot;, &quot;trt&quot;, &quot;ctl&quot;],\n    &quot;T_0&quot;: [1.0, 2.0, 1.0],\n    &quot;T_4&quot;: [5.0, 8.0, 5.0],\n    &quot;T_24&quot;: [3.0, 6.0, 3.0],\n})\nprint(&quot;demo_wide (row 2 repeats row 0):&quot;)\nprint(demo_wide)\n\nprint(&quot;&quot;)\nprint(&quot;--- 1. wide to tidy ---&quot;)\ndemo_tidy = demo_wide.melt(id_vars=[&quot;ID&quot;, &quot;ARM&quot;], var_name=&quot;TLAB&quot;, value_name=&quot;VAL&quot;)\nprint(demo_tidy)\nprint(&quot;rows: %d wide became %d tidy, which is %d rows times %d timepoint columns&quot;\n      % (len(demo_wide), len(demo_tidy), len(demo_wide), 3))\n\nprint(&quot;&quot;)\nprint(&quot;--- 2. the label is still text, so make it a number ---&quot;)\ndemo_tidy[&quot;TIME&quot;] = demo_tidy[&quot;TLAB&quot;].str.replace(&quot;T_&quot;, &quot;&quot;, regex=False).astype(float)\nprint(demo_tidy.head(4))\nprint(&quot;&quot;)\nprint(&quot;sorted as TEXT :&quot;, sorted(demo_tidy[&quot;TLAB&quot;].unique()), &quot; &lt;- T_24 lands before T_4&quot;)\nprint(&quot;sorted as NUMBER:&quot;, [float(v) for v in sorted(demo_tidy[&quot;TIME&quot;].unique())], &quot; &lt;- correct&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 3. drop a column, sort, renumber the index ---&quot;)\ndemo_clean = (demo_tidy\n              .drop(columns=[&quot;TLAB&quot;])\n              .sort_values([&quot;ID&quot;, &quot;TIME&quot;])\n              .reset_index(drop=True))\nprint(demo_clean)\n\nprint(&quot;&quot;)\nprint(&quot;--- 4. finding and removing repeated rows ---&quot;)\nprint(&quot;duplicated() :&quot;, list(demo_clean.duplicated()), &quot; &lt;- True only for the repeats&quot;)\nprint(&quot;how many     :&quot;, int(demo_clean.duplicated().sum()))\nprint(&quot;keep=False   :&quot;, int(demo_clean.duplicated(keep=False).sum()),\n      &quot; &lt;- flags BOTH copies, which is not what the task asks for&quot;)\ndemo_dedup = demo_clean.drop_duplicates()\nprint(&quot;rows after drop_duplicates:&quot;, len(demo_dedup))\n\nprint(&quot;&quot;)\nprint(&quot;--- 5. tidy back to wide ---&quot;)\nprint(&quot;pivot on the data that still has repeats:&quot;)\ntry:\n    demo_clean.pivot(index=&quot;ID&quot;, columns=&quot;TIME&quot;, values=&quot;VAL&quot;)\nexcept ValueError as err:\n    print(&quot;  fails with:&quot;, err)\nprint(&quot;&quot;)\nprint(&quot;pivot after dropping them:&quot;)\nprint(demo_dedup.pivot(index=&quot;ID&quot;, columns=&quot;TIME&quot;, values=&quot;VAL&quot;))</code></pre>"
+   },
+   {
+    "key": "parta",
+    "label": "Part a",
+    "html": "<h2>Part a. Wide to tidy</h2>\n<p><code>melt</code> folds a set of columns down into two: one holding what used to be the\ncolumn <strong>names</strong>, one holding the <strong>values</strong>. That is what turns the timepoint\nfrom metadata into data you can actually group, filter and plot against.</p>\n<p><code>id_vars</code> is the list of columns to leave alone. Everything you do not list\ngets folded, so naming <code>ANIMAL</code> and <code>GROUP</code> is enough; you do not have to list\nthe timepoint columns.</p>\n<p>Use <code>var_name</code> and <code>value_name</code> to get the output columns named properly\nstraight away, otherwise they arrive as <code>variable</code> and <code>value</code>.</p>\n<p>Fill in <code>tidy</code>, with exactly these four columns, named exactly like this:</p>\n<table>\n<thead>\n<tr>\n<th>column</th>\n<th>meaning</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>ANIMAL</code></td>\n<td>animal identifier</td>\n</tr>\n<tr>\n<td><code>GROUP</code></td>\n<td><code>Vehicle</code> or <code>Drug</code></td>\n</tr>\n<tr>\n<td><code>TIME_LABEL</code></td>\n<td>the original column name, so still the text <code>T_0</code>, <code>T_1</code>, and so on</td>\n</tr>\n<tr>\n<td><code>INHIB_PCT</code></td>\n<td>the percent inhibition value</td>\n</tr>\n</tbody>\n</table>\n<p>Moves: <code>wide.melt(id_vars=[...], var_name=..., value_name=...)</code>.</p><pre class=\"code\"><code># Part a. Reshape wide into tidy.\n# Columns wanted: ANIMAL, GROUP, TIME_LABEL, INHIB_PCT\n\ntidy = None   # YOUR CODE\n\nprint(None if tidy is None else tidy.shape)\nprint(None if tidy is None else tidy.head())</code></pre>"
+   },
+   {
+    "key": "partb",
+    "label": "Part b",
+    "html": "<h2>Part b. Make the time column numeric and sort</h2>\n<p>Your timepoints are still text like <code>\"T_24\"</code>. Strip the prefix and convert, or\nevery later step treats them as labels rather than numbers.</p>\n<p>This matters more than it looks. Sorting text compares character by character,\nso <code>\"T_24\"</code> sorts <strong>before</strong> <code>\"T_4\"</code>, and a profile ordered that way is\nscrambled in a way that is easy to miss once it is on a plot. Convert first,\nthen sort.</p>\n<p>Finish by resetting the index. Sorting moves the rows but the old row labels\ntravel with them, so without <code>drop=True</code> the index comes out shuffled.</p>\n<p>Fill in <code>tidy_clean</code>: add a numeric <code>TIME_H</code> in hours so <code>T_24</code> becomes\n<code>24.0</code>, drop <code>TIME_LABEL</code>, leaving <code>ANIMAL</code>, <code>GROUP</code>, <code>TIME_H</code>, <code>INHIB_PCT</code>,\nsorted by animal then time, index running 0, 1, 2 and up.</p>\n<p>Moves: <code>.str.replace(..., regex=False)</code>, <code>.astype(float)</code>,\n<code>.drop(columns=...)</code>, <code>.sort_values([...])</code>, <code>.reset_index(drop=True)</code>.</p><pre class=\"code\"><code># Part b. Numeric TIME_H, drop TIME_LABEL, sort by ANIMAL then TIME_H, reset the index.\n\ntidy_clean = None   # YOUR CODE\n\nprint(None if tidy_clean is None else tidy_clean.head(8))</code></pre>"
+   },
+   {
+    "key": "partc",
+    "label": "Part c",
+    "html": "<h2>Part c. Find the duplicate, then go back to wide</h2>\n<p>Try the pivot first, and let it fail. <code>ValueError: Index contains duplicate\nentries</code> is the reshape telling you two rows claim the same animal and the\nsame timepoint, so there is no single value to put in that cell. That is a\nreal data problem surfacing, not a coding mistake.</p>\n<p>Here the cause is a record that was sent twice, so dropping the exact repeats\nis the right fix. If the two rows had held <em>different</em> values it would be a\nscientific question instead, and <code>pivot_table</code> with an aggregation would be\nthe tool. Knowing which situation you are in means looking first.</p>\n<p>Note that <code>duplicated()</code> flags only the repeats and leaves the first\noccurrence alone, which is what you want to count. <code>keep=False</code> flags both\ncopies and would give you double.</p>\n<p>Fill in <code>n_dup_rows</code>, how many rows of <code>tidy_clean</code> repeat a row already seen.\nAnd <code>wide_again</code>, the duplicate-free data pivoted back to wide with <code>ANIMAL</code>\nas the index and the values of <code>TIME_H</code> as the columns, holding <code>INHIB_PCT</code>.</p>\n<p>Moves: <code>.duplicated().sum()</code>, <code>.drop_duplicates()</code>,\n<code>.pivot(index=..., columns=..., values=...)</code>.</p><pre class=\"code\"><code># Part c. Count the repeated rows, drop them, pivot back to wide.\n\nn_dup_rows = None   # YOUR CODE: how many rows repeat a row already seen\nwide_again = None   # YOUR CODE: pivot of the duplicate-free data\n\nprint(&quot;n_dup_rows:&quot;, n_dup_rows)\nprint(None if wide_again is None else wide_again)</code></pre>"
+   }
+  ]
+ },
+ {
+  "id": "W1D5",
+  "week": 1,
+  "day": 5,
+  "title": "Cells inside animals: aggregate first, then plot mean with SD",
+  "topic": "matplotlib and pandas: nested data, animal level aggregation, SD error bars",
+  "est": "20-30 min",
+  "colab": "https://colab.research.google.com/github/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d5_matplotlib_nested_sd.ipynb",
+  "github": "https://github.com/dc00086-glitch/internship-prep/blob/main/problems/week01/w1d5_matplotlib_nested_sd.ipynb",
+  "solution": "https://github.com/dc00086-glitch/internship-prep/blob/main/solutions/week01/w1d5_matplotlib_nested_sd_solution.ipynb",
+  "toolkit": "<h2>Toolkit for this problem</h2>\n<p>Two steps, in this order, always: <strong>cells up to animals</strong>, then <strong>animals up\nto groups</strong>. Everything below runs on a tiny made up table, so none of it is\nthe answer.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>aggregate and name the result</td>\n<td><code>df.groupby(\"ID\").agg(M=(\"VAL\", \"mean\"), N=(\"VAL\", \"size\"))</code></td>\n</tr>\n<tr>\n<td>turn group keys back into columns</td>\n<td><code>.reset_index()</code></td>\n</tr>\n<tr>\n<td>count rows in a group</td>\n<td>the aggregation <code>\"size\"</code></td>\n</tr>\n<tr>\n<td>sample SD</td>\n<td>the aggregation <code>\"std\"</code>, which pandas already does with <code>n - 1</code></td>\n</tr>\n<tr>\n<td>a figure with one axes</td>\n<td><code>fig, ax = plt.subplots(figsize=(6, 4.5))</code></td>\n</tr>\n<tr>\n<td>points with error bars</td>\n<td><code>ax.errorbar([0, 1], means, yerr=sds, fmt=\"o\", capsize=6)</code></td>\n</tr>\n<tr>\n<td>scattered points on top</td>\n<td><code>ax.scatter(x, y)</code></td>\n</tr>\n<tr>\n<td>name the ticks</td>\n<td><code>ax.set_xticks([0, 1])</code> then <code>ax.set_xticklabels([\"Drug\", \"Vehicle\"])</code></td>\n</tr>\n<tr>\n<td>label the axes</td>\n<td><code>ax.set_xlabel(...)</code>, <code>ax.set_ylabel(...)</code>, <code>ax.set_title(...)</code></td>\n</tr>\n</tbody>\n</table>\n<p>Why <code>yerr</code> must be the SD of the animal means, and not either of the other\ntwo numbers that are easy to reach for:</p>\n<ul>\n<li>the SD of all the <strong>cells</strong> describes how much cells vary inside an animal,\n  which is a microscope question, not a drug question,</li>\n<li>the <strong>SEM</strong> is that SD divided by the square root of n, so it shrinks when\n  you image more cells, which makes a weak effect look convincing.</li>\n</ul>",
+  "sections": [
+   {
+    "key": "scenario",
+    "label": "Scenario",
+    "html": "<h2>Scenario</h2>\n<p>You have quantified a target engagement marker by immunofluorescence. Twelve\nmice, six on vehicle and six on drug. For each mouse you imaged a slide and\nmeasured <strong>many individual cells</strong>, somewhere between 20 and 60 of them, so the\ntable you are holding has hundreds of rows.</p>\n<p>This is the single most commonly botched analysis in cell biology, so it is\nworth being slow and deliberate about it.</p>\n<p><strong>The unit of replication is the animal, not the cell.</strong> The cells inside one\nmouse are not independent samples of the drug effect; they are repeat measures\nof one mouse. If you pool all the cells and treat them as n, you inflate n\nfrom 12 to several hundred, you weight each mouse by however many cells you\nhappened to image, and any statistic you compute afterwards is wrong. So:</p>\n<ol>\n<li>aggregate the cells up to one number per animal,</li>\n<li>then do all group level statistics across animals, with n = animals.</li>\n</ol>\n<p>The second house rule: error bars are <strong>SD</strong>, never SEM. An SD bar tells the\nreader how much the animals differ from each other, which is what they want to\nknow. A SEM bar mostly tells them how many animals you ran.</p>"
+   },
+   {
+    "key": "concept",
+    "label": "How matplotlib works, and why the unit of replication matters",
+    "html": "<h2>How matplotlib works, and why the unit of replication matters</h2>\n<h3>The object model</h3>\n<p>Almost every confusing matplotlib example online comes from mixing two\ndifferent styles. There is <code>plt.plot(...)</code>, which draws on whatever figure\nhappens to be current, a hidden piece of state you cannot see. And there is\nthe explicit style, where you hold the objects yourself:</p>\n<pre><code class=\"language-python\">fig, ax = plt.subplots(figsize=(6, 4.5))\n</code></pre>\n<ul>\n<li><strong><code>fig</code></strong> is the whole picture: the canvas, its size, and what gets saved.</li>\n<li><strong><code>ax</code></strong> is one set of axes inside it: the data area, its ticks, its labels,\n  and the things drawn on it.</li>\n</ul>\n<p>You then tell <code>ax</code> what to draw, by calling methods on it. <code>ax.errorbar(...)</code>,\n<code>ax.scatter(...)</code>, <code>ax.set_ylabel(...)</code>. Everything is a method on the thing\nit affects, which means you can always find the right call by asking \"which\nobject does this belong to\". It also means a figure with several panels is no\nharder: <code>plt.subplots(1, 2)</code> hands you an array of axes, and each one is\ndriven exactly the same way. Use the explicit style always. The hidden-state\nstyle falls apart the moment a notebook has more than one figure.</p>\n<p>Drawing order is controlled by <code>zorder</code>, higher being nearer the front, which\nis how you keep scattered points from hiding your summary markers.</p>\n<h3>The statistics this plot is really about</h3>\n<p><strong>Replication is about independence, not sample size.</strong> Two measurements count\nas replicates only if they are independent draws from the thing you are\nstudying. You are studying a drug effect in animals, so two animals are two\nreplicates. Fifty cells from one animal are fifty measurements of <strong>that one\nanimal</strong>, sharing its genetics, its dose, its exposure, its slide and its\nstaining batch. They tell you about variation between cells, which is a real\nand sometimes interesting quantity, but it is not the quantity your group\ncomparison is about.</p>\n<p>Treating cells as n does three separate kinds of damage:</p>\n<ol>\n<li><strong>n is inflated</strong>, here from 12 to several hundred, so confidence intervals\n   collapse and almost anything looks significant. This has a name,\n   pseudoreplication, and it is one of the most common fatal flaws in cell\n   biology papers.</li>\n<li><strong>Animals get unequal weight.</strong> Pooling means the animal you imaged 60\n   cells from counts twelve times as much as the one you imaged 5 from. The\n   group mean drifts toward whichever animal you had most patience with, which\n   is a property of your afternoon, not of the drug.</li>\n<li><strong>The error bar answers the wrong question.</strong> The SD of pooled cells mostly\n   measures cell to cell variation and staining noise. A reader looking at\n   your figure wants to know how reproducible the effect is <strong>between\n   animals</strong>, because that is what predicts whether it replicates.</li>\n</ol>\n<p>The fix is the two-step aggregation you are about to write: cells up to one\nnumber per animal, then animals up to a group mean and SD. After step one,\nevery animal is one row, which is exactly the shape every standard statistical\ntest assumes.</p>\n<p><strong>And the SD versus SEM choice.</strong> SEM is the SD divided by the square root of\nn, so it shrinks as you add animals even when the biology is identical. It\ndescribes how precisely you have located the mean, not how much the animals\ndiffer. For a figure whose job is to show a biological effect, SD is the\nhonest choice, and a reader who knows n can always work out the SEM. A reader\nshown SEM cannot work backwards without being told n.</p>"
+   },
+   {
+    "key": "task",
+    "label": "Your task",
+    "html": "<h2>Your task</h2>\n<p>Three parts, worked one at a time, and the order matters: cells up to animals\nfirst, then animals up to groups, then the figure.</p>\n<table>\n<thead>\n<tr>\n<th>Part</th>\n<th>What you work out</th>\n<th>Variables to fill in</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>a</td>\n<td>one row per animal, out of hundreds of cells</td>\n<td><code>animal_level</code></td>\n</tr>\n<tr>\n<td>b</td>\n<td>group statistics computed across animals</td>\n<td><code>group_stats</code></td>\n</tr>\n<tr>\n<td>c</td>\n<td>the figure, means with SD and every animal shown</td>\n<td><code>fig</code>, <code>ax</code></td>\n</tr>\n</tbody>\n</table>\n<p>Below this you will find the <strong>Setup</strong> cell, then a <strong>Toolkit</strong> cell that\ndemonstrates every move on a tiny made up example, then <strong>Part a</strong>, <strong>Part b</strong>\nand <strong>Part c</strong>, each with its own explanation and a cell to write in.</p>"
+   },
+   {
+    "key": "setup",
+    "label": "Setup",
+    "html": "<pre class=\"code\"><code>import numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\n\nPROBLEM_ID = &quot;W1D5&quot;\nTOPIC = &quot;matplotlib and pandas: nested data, animal level aggregation, SD error bars&quot;\n\nrng = np.random.default_rng(1105)\n\n_group_true = {&quot;Vehicle&quot;: 1000.0, &quot;Drug&quot;: 420.0}\n\n_frames = []\nfor _i in range(1, 13):\n    _group = &quot;Vehicle&quot; if _i &lt;= 6 else &quot;Drug&quot;\n    _animal = &quot;MS%02d&quot; % _i\n    _animal_mean = _group_true[_group] * rng.lognormal(0.0, 0.18)   # between animal\n    _n_cells = int(rng.integers(20, 61))                            # unequal effort per slide\n    _vals = rng.normal(_animal_mean, 0.35 * _animal_mean, size=_n_cells)   # within animal\n    _frames.append(pd.DataFrame({\n        &quot;ANIMAL&quot;: _animal,\n        &quot;GROUP&quot;: _group,\n        &quot;CELL_ID&quot;: np.arange(1, _n_cells + 1),\n        &quot;INTENSITY&quot;: np.round(np.clip(_vals, 0.0, None), 1),\n    }))\n\ncells = pd.concat(_frames, ignore_index=True)\n\nprint(&quot;cells:&quot;, cells.shape, &quot; rows are individual cells, not animals&quot;)\nprint(cells.head())\nprint(&quot;&quot;)\nprint(&quot;cells measured per animal:&quot;)\nprint(cells.groupby(&quot;ANIMAL&quot;)[&quot;CELL_ID&quot;].size().to_string())</code></pre>"
+   },
+   {
+    "key": "toolkit",
+    "label": "Toolkit",
+    "html": "<h2>Toolkit for this problem</h2>\n<p>Two steps, in this order, always: <strong>cells up to animals</strong>, then <strong>animals up\nto groups</strong>. Everything below runs on a tiny made up table, so none of it is\nthe answer.</p>\n<table>\n<thead>\n<tr>\n<th>What you want to do</th>\n<th>How</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>aggregate and name the result</td>\n<td><code>df.groupby(\"ID\").agg(M=(\"VAL\", \"mean\"), N=(\"VAL\", \"size\"))</code></td>\n</tr>\n<tr>\n<td>turn group keys back into columns</td>\n<td><code>.reset_index()</code></td>\n</tr>\n<tr>\n<td>count rows in a group</td>\n<td>the aggregation <code>\"size\"</code></td>\n</tr>\n<tr>\n<td>sample SD</td>\n<td>the aggregation <code>\"std\"</code>, which pandas already does with <code>n - 1</code></td>\n</tr>\n<tr>\n<td>a figure with one axes</td>\n<td><code>fig, ax = plt.subplots(figsize=(6, 4.5))</code></td>\n</tr>\n<tr>\n<td>points with error bars</td>\n<td><code>ax.errorbar([0, 1], means, yerr=sds, fmt=\"o\", capsize=6)</code></td>\n</tr>\n<tr>\n<td>scattered points on top</td>\n<td><code>ax.scatter(x, y)</code></td>\n</tr>\n<tr>\n<td>name the ticks</td>\n<td><code>ax.set_xticks([0, 1])</code> then <code>ax.set_xticklabels([\"Drug\", \"Vehicle\"])</code></td>\n</tr>\n<tr>\n<td>label the axes</td>\n<td><code>ax.set_xlabel(...)</code>, <code>ax.set_ylabel(...)</code>, <code>ax.set_title(...)</code></td>\n</tr>\n</tbody>\n</table>\n<p>Why <code>yerr</code> must be the SD of the animal means, and not either of the other\ntwo numbers that are easy to reach for:</p>\n<ul>\n<li>the SD of all the <strong>cells</strong> describes how much cells vary inside an animal,\n  which is a microscope question, not a drug question,</li>\n<li>the <strong>SEM</strong> is that SD divided by the square root of n, so it shrinks when\n  you image more cells, which makes a weak effect look convincing.</li>\n</ul><pre class=\"code\"><code>import numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\n\n# A tiny made up table: 2 animals per arm, a handful of cells each, on purpose\n# an unequal number of cells. Nothing here is the answer to the problem.\ndemo = pd.DataFrame({\n    &quot;ID&quot;:  [&quot;a1&quot;, &quot;a1&quot;, &quot;a1&quot;, &quot;a2&quot;, &quot;a2&quot;, &quot;b1&quot;, &quot;b1&quot;, &quot;b2&quot;, &quot;b2&quot;, &quot;b2&quot;],\n    &quot;ARM&quot;: [&quot;ctl&quot;, &quot;ctl&quot;, &quot;ctl&quot;, &quot;ctl&quot;, &quot;ctl&quot;, &quot;trt&quot;, &quot;trt&quot;, &quot;trt&quot;, &quot;trt&quot;, &quot;trt&quot;],\n    &quot;VAL&quot;: [10.0, 12.0, 14.0, 30.0, 34.0, 4.0, 6.0, 9.0, 11.0, 13.0],\n})\nprint(&quot;demo, one row per cell:&quot;)\nprint(demo)\n\nprint(&quot;&quot;)\nprint(&quot;--- 1. cells up to animals ---&quot;)\ndemo_animal = (demo\n               .groupby([&quot;ID&quot;, &quot;ARM&quot;])\n               .agg(MEAN_VAL=(&quot;VAL&quot;, &quot;mean&quot;), N_CELLS=(&quot;VAL&quot;, &quot;size&quot;))\n               .reset_index())\nprint(demo_animal)\nprint(&quot;note: the aggregation names become the column names, so no rename is needed&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 2. animals up to groups ---&quot;)\ndemo_group = (demo_animal\n              .groupby(&quot;ARM&quot;)\n              .agg(MEAN=(&quot;MEAN_VAL&quot;, &quot;mean&quot;), SD=(&quot;MEAN_VAL&quot;, &quot;std&quot;), N_ANIMALS=(&quot;MEAN_VAL&quot;, &quot;size&quot;))\n              .reset_index()\n              .sort_values(&quot;ARM&quot;)\n              .reset_index(drop=True))\nprint(demo_group)\n\nprint(&quot;&quot;)\nprint(&quot;--- 3. why the order matters ---&quot;)\ndemo_pooled = demo.groupby(&quot;ARM&quot;)[&quot;VAL&quot;].agg([&quot;mean&quot;, &quot;std&quot;, &quot;size&quot;])\nprint(&quot;mean of the animal means :&quot;, [round(v, 3) for v in demo_group[&quot;MEAN&quot;]])\nprint(&quot;mean of every cell pooled:&quot;, [round(v, 3) for v in demo_pooled[&quot;mean&quot;]],\n      &quot; &lt;- different, because the animals gave unequal numbers of cells&quot;)\nprint(&quot;&quot;)\nprint(&quot;SD across animals        :&quot;, [round(v, 3) for v in demo_group[&quot;SD&quot;]], &quot; &lt;- what we plot&quot;)\nprint(&quot;SD across pooled cells   :&quot;, [round(v, 3) for v in demo_pooled[&quot;std&quot;]], &quot; &lt;- a microscope question&quot;)\ndemo_sem = demo_group[&quot;SD&quot;] / np.sqrt(demo_group[&quot;N_ANIMALS&quot;])\nprint(&quot;SEM across animals       :&quot;, [round(v, 3) for v in demo_sem], &quot; &lt;- never plot this&quot;)\nprint(&quot;&quot;)\nprint(&quot;n if you count animals   :&quot;, list(demo_group[&quot;N_ANIMALS&quot;]))\nprint(&quot;n if you count cells     :&quot;, list(demo_pooled[&quot;size&quot;]), &quot; &lt;- the inflated n to avoid&quot;)\n\nprint(&quot;&quot;)\nprint(&quot;--- 4. the figure, built the same way you will build yours ---&quot;)\ndemo_fig, demo_ax = plt.subplots(figsize=(5, 3.5))\ndemo_order = list(demo_group[&quot;ARM&quot;])\ndemo_ax.errorbar([0, 1], demo_group[&quot;MEAN&quot;], yerr=demo_group[&quot;SD&quot;],\n                 fmt=&quot;o&quot;, color=&quot;black&quot;, capsize=6, linestyle=&quot;none&quot;, zorder=3)\ndemo_x = [demo_order.index(a) for a in demo_animal[&quot;ARM&quot;]]\ndemo_ax.scatter(demo_x, demo_animal[&quot;MEAN_VAL&quot;], s=40, alpha=0.75, zorder=2)\ndemo_ax.set_xticks([0, 1])\ndemo_ax.set_xticklabels(demo_order)\ndemo_ax.set_xlim(-0.5, 1.5)\ndemo_ax.set_xlabel(&quot;Made up arm&quot;)\ndemo_ax.set_ylabel(&quot;Made up value&quot;)\ndemo_ax.set_title(&quot;Toolkit demo, not the answer&quot;)\nplt.show()</code></pre>"
+   },
+   {
+    "key": "parta",
+    "label": "Part a",
+    "html": "<h2>Part a. Aggregate the cells up to the animal</h2>\n<p>This is the step that makes everything after it valid. One row per animal,\nholding that animal's mean across its own cells.</p>\n<p>Group by animal and group together, so each animal keeps its treatment label\nand you do not have to join it back on afterwards. Naming the outputs inside\n<code>.agg()</code> saves a rename. The aggregation <code>\"size\"</code> counts rows in each group,\nwhich here means cells per animal.</p>\n<p>Keep <code>N_CELLS</code> even though nothing downstream divides by it. It is the number\nthat shows how unequal the imaging effort was, and therefore why pooling the\ncells would have distorted the group mean.</p>\n<p>Fill in <code>animal_level</code>, a flat DataFrame with exactly these four columns:</p>\n<table>\n<thead>\n<tr>\n<th>column</th>\n<th>meaning</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>ANIMAL</code></td>\n<td>animal identifier</td>\n</tr>\n<tr>\n<td><code>GROUP</code></td>\n<td><code>Drug</code> or <code>Vehicle</code></td>\n</tr>\n<tr>\n<td><code>MEAN_INTENSITY</code></td>\n<td>mean of that animal's own cells</td>\n</tr>\n<tr>\n<td><code>N_CELLS</code></td>\n<td>how many cells were measured in that animal</td>\n</tr>\n</tbody>\n</table>\n<p>Moves: <code>.groupby([...]).agg(NAME=(\"COL\", \"mean\"), ...)</code>, <code>.reset_index()</code>.</p><pre class=\"code\"><code># Part a. One row per animal: ANIMAL, GROUP, MEAN_INTENSITY, N_CELLS\n\nanimal_level = None   # YOUR CODE\n\nprint(animal_level)</code></pre>"
+   },
+   {
+    "key": "partb",
+    "label": "Part b",
+    "html": "<h2>Part b. Group statistics across animals</h2>\n<p>Build this from <code>animal_level</code>, <strong>not</strong> from <code>cells</code>. That one choice is the\nwhole point of the problem.</p>\n<p>Every number here is computed across animals. <code>MEAN</code> is the mean of the animal\nmeans, which is not the same as the mean of all the cells, because the animals\ncontributed unequal numbers of cells. <code>SD</code> is the spread of the animal means,\nwhich is what tells a reader how reproducible the effect is. <code>N_ANIMALS</code>\nshould come out at 6 per group; if you see numbers in the hundreds you are\ncounting cells.</p>\n<p>Fill in <code>group_stats</code>, sorted by <code>GROUP</code> which puts <code>Drug</code> first, with exactly\nthese four columns:</p>\n<table>\n<thead>\n<tr>\n<th>column</th>\n<th>meaning</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td><code>GROUP</code></td>\n<td><code>Drug</code> or <code>Vehicle</code></td>\n</tr>\n<tr>\n<td><code>MEAN</code></td>\n<td>mean of the animal means in that group</td>\n</tr>\n<tr>\n<td><code>SD</code></td>\n<td><strong>sample</strong> SD of the animal means in that group</td>\n</tr>\n<tr>\n<td><code>N_ANIMALS</code></td>\n<td>number of animals in that group</td>\n</tr>\n</tbody>\n</table>\n<p>Moves: <code>.groupby(\"GROUP\").agg(MEAN=(\"MEAN_INTENSITY\", \"mean\"), ...)</code>,\n<code>.reset_index()</code>, <code>.sort_values(...)</code>.</p><pre class=\"code\"><code># Part b. One row per group, computed across animals: GROUP, MEAN, SD, N_ANIMALS\n\ngroup_stats = None   # YOUR CODE\n\nprint(group_stats)</code></pre>"
+   },
+   {
+    "key": "partc",
+    "label": "Part c",
+    "html": "<h2>Part c. The figure</h2>\n<p>A figure that shows only two means and two error bars hides your whole\ndataset. Overlaying every animal costs one line and lets a reader see the\nspread, the sample size and any outlier at a glance. Make it your default.</p>\n<p>Build it the explicit way: get <code>fig</code> and <code>ax</code> from <code>plt.subplots()</code>, then call\nmethods on <code>ax</code>. <code>yerr</code> comes from the <code>SD</code> column of <code>group_stats</code>, which is\nthe SD <strong>across animals</strong>, not across cells and not the SEM.</p>\n<p>What the figure needs:</p>\n<ul>\n<li><code>fig, ax = plt.subplots(figsize=(6, 4.5))</code></li>\n<li>the two group means drawn with <code>ax.errorbar</code>, at x positions <code>0</code> and <code>1</code>, in\n  the row order of <code>group_stats</code>, with <code>yerr</code> set to the <code>SD</code> column and\n  <code>fmt=\"o\"</code></li>\n<li>every animal's own mean overlaid with <code>ax.scatter</code>, one point per animal, at\n  the x position of its group. A little jitter on x is welcome but optional</li>\n<li>x ticks set to <code>[0, 1]</code> and labelled with the group names</li>\n<li>an x label, a y label and a title. An unlabelled axis makes a figure\n  unreadable to everyone except the person who made it, including you in three\n  weeks</li>\n</ul>\n<p>Fill in <code>fig</code>, <code>ax</code>.\nMoves: <code>plt.subplots(figsize=...)</code>, <code>ax.errorbar(..., yerr=..., fmt=\"o\")</code>,\n<code>ax.scatter(...)</code>, <code>ax.set_xticks</code>, <code>ax.set_xticklabels</code>, <code>ax.set_xlabel</code>,\n<code>ax.set_ylabel</code>, <code>ax.set_title</code>.</p><pre class=\"code\"><code># Part c. Group means with SD error bars, every animal overlaid.\n\nfig, ax = plt.subplots(figsize=(6, 4.5))\n\nx_pos = [0, 1]\n\n# YOUR CODE: ax.errorbar(...) for the two group means, yerr = the SD column\n\n# YOUR CODE: ax.scatter(...) for the 12 individual animal means\n\n# YOUR CODE: ax.set_xticks(...), ax.set_xticklabels(...)\n\n# YOUR CODE: ax.set_xlabel(...), ax.set_ylabel(...), ax.set_title(...)\n\nplt.show()</code></pre>"
+   }
+  ]
+ }
+];
+  // === PROBLEMS END ===
+  const THEMES = {"1": "numpy, pandas and matplotlib", "2": "pandas in depth", "3": "scipy", "4": "scikit-image and OpenCV", "5": "scikit-learn", "6": "PyTorch basics", "7": "PK and PD applications", "8": "PK and PD applications"};
+
+  const nav = document.getElementById("nav");
+  const main = document.getElementById("main");
+  const tk = document.getElementById("tk");
+  const tkBody = document.getElementById("tk-body");
+  const tkTitle = document.getElementById("tk-title");
+
+  const N_WEEKS = new Set(PROBLEMS.map(function (p) { return p.week; })).size;
+  document.getElementById("aside-sub").textContent =
+    PROBLEMS.length + " problems across " + N_WEEKS + (N_WEEKS === 1 ? " week" : " weeks");
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function buildNav() {
+    const weeks = {};
+    PROBLEMS.forEach(function (p) { (weeks[p.week] = weeks[p.week] || []).push(p); });
+    let html = "";
+    Object.keys(weeks).sort(function (a, b) { return a - b; }).forEach(function (wk) {
+      const theme = THEMES[wk] ? "<span> &middot; " + esc(THEMES[wk]) + "</span>" : "";
+      html += '<div class="wk"><div class="wk-h">Week ' + wk + theme + "</div>";
+      weeks[wk].forEach(function (p) {
+        html += '<a class="d" data-id="' + p.id + '" href="#' + p.id + '">' +
+                "<code>" + esc(p.id) + "</code>" + esc(p.title) + "</a>";
+      });
+      html += "</div>";
+    });
+    nav.innerHTML = html;
+  }
+
+  function indexOf(id) {
+    for (let i = 0; i < PROBLEMS.length; i++) if (PROBLEMS[i].id === id) return i;
+    return -1;
+  }
+
+  function render(id) {
+    const i = indexOf(id);
+    if (i < 0) return;
+    const p = PROBLEMS[i];
+
+    let html = '<span class="pid">' + esc(p.id) + "</span>" +
+      '<h2 class="title">' + esc(p.title) + "</h2>" +
+      '<p class="meta">' + esc(p.topic) + "<br>Week " + p.week + ", day " + p.day +
+      " &middot; " + esc(p.est) + "</p>" +
+      '<div class="btns">' +
+        '<a class="btn" href="' + p.colab + '">Open in Colab</a>' +
+        '<a class="btn ghost" href="' + p.github + '">View on GitHub</a>' +
+        '<a class="btn quiet" href="' + p.solution + '">Solution</a>' +
+      "</div>";
+
+    html += '<div class="jump">';
+    p.sections.forEach(function (s) {
+      html += '<a href="#sec-' + s.key + '">' + esc(s.label) + "</a>";
+    });
+    html += "</div>";
+
+    p.sections.forEach(function (s) {
+      html += '<section class="blk" id="sec-' + s.key + '">' +
+              "<h3>" + esc(s.label) + '</h3><div class="body">' + s.html + "</div></section>";
+    });
+
+    html += '<div class="pager">';
+    html += i > 0
+      ? '<a href="#' + PROBLEMS[i - 1].id + '">Previous, ' + esc(PROBLEMS[i - 1].id) + "</a>"
+      : "<span>Previous</span>";
+    html += i < PROBLEMS.length - 1
+      ? '<a href="#' + PROBLEMS[i + 1].id + '">Next, ' + esc(PROBLEMS[i + 1].id) + "</a>"
+      : "<span>Next</span>";
+    html += "</div>";
+
+    main.innerHTML = html;
+    main.scrollTop = 0;
+    window.scrollTo(0, 0);
+
+    Array.prototype.forEach.call(nav.querySelectorAll(".d"), function (a) {
+      a.classList.toggle("on", a.getAttribute("data-id") === id);
+    });
+
+    tkTitle.textContent = "Toolkit, " + p.id;
+    tkBody.innerHTML = p.toolkit || "<p>This problem has no toolkit section.</p>";
+    document.title = p.id + ", " + p.title;
+  }
+
+  function fromHash() {
+    const id = location.hash.replace(/^#/, "");
+    render(indexOf(id) >= 0 ? id : PROBLEMS[0].id);
+  }
+
+  document.getElementById("tk-btn").addEventListener("click", function () {
+    tk.classList.toggle("open");
+  });
+  document.getElementById("tk-close").addEventListener("click", function () {
+    tk.classList.remove("open");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") tk.classList.remove("open");
+  });
+  window.addEventListener("hashchange", fromHash);
+
+  buildNav();
+  fromHash();
+</script>
+</body>
+</html>

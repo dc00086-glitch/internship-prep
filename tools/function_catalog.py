@@ -440,7 +440,131 @@ ENTRIES = [
      "plt.show()",
      "In a notebook the figure usually appears anyway, but calling it is "
      "explicit and stops a stray text repr printing above your plot."),
+# ---------------------------------------------------- added for week 2
+    ("Python", "sorted", "sorted(x)",
+     "Returns a new sorted list. Works on the result of .unique(), which comes "
+     "back in whatever order pandas found the values.",
+     'sorted(df["SUBJECT"].unique())',
+     "Sorting text compares character by character, so '10' lands before '9'. "
+     "Convert to numbers first when the order has to be numeric."),
+
+    ("pandas", ".transform", 'df.groupby("ID")["V"].transform("mean")',
+     "Computes per group like agg does, then broadcasts each group's answer "
+     "back over every row of that group. The result has the same length as the "
+     "input, so it drops straight into a new column.",
+     'df["BASELINE"] = df.groupby("SUBJECT")["V"].transform("first")',
+     "transform('first') takes whatever row is physically first in each group. "
+     "It does not know what your time column means, so sort before you use it."),
+
+    ("pandas", ".all / .any", "(a == b).all()",
+     "Reduces a column of True and False to a single True or False. .all() asks "
+     "whether every value is True, .any() whether at least one is.",
+     '(at_zero["VALUE"] == at_zero["BASELINE"]).all()',
+     "Comparing two columns gives a Series, not one answer, so an if on it "
+     "raises 'The truth value of a Series is ambiguous'. Finish with .all()."),
+
+    ("pandas", "ignore_index", "df.sort_values([...], ignore_index=True)",
+     "Renumbers the index 0, 1, 2 as part of the sort, instead of carrying the "
+     "old row labels along.",
+     'df.sort_values(["SUBJECT", "TIME_H"], ignore_index=True)',
+     "Exactly the same as following the sort with .reset_index(drop=True)."),
+
+    ("pandas", "validate=", 'pd.merge(a, b, on="K", how="left", validate="m:1")',
+     "States the relationship you believe the keys have, and raises a MergeError "
+     "if it is false. 'm:1' means the right hand key must be unique.",
+     'pd.merge(pk, dosing, on="SUBJECT", how="left", validate="m:1")',
+     "This is the cheapest protection against a merge that silently duplicates "
+     "rows. Without it a repeated key doubles your data with no warning."),
+
+    ("pandas", "indicator=", "pd.merge(a, b, on=..., how=..., indicator=True)",
+     "Adds a _merge column saying whether each row came from left_only, "
+     "right_only or both, so you can see exactly what failed to match.",
+     'checked[checked["_merge"] == "left_only"]',
+     "Put the table you want to account for on the LEFT. Grid on the left "
+     "answers what is missing; data on the left answers what was unexpected."),
+
+    ("pandas", ".value_counts", 'df["COL"].value_counts()',
+     "Counts how many times each distinct value appears, largest first.",
+     'checked["_merge"].value_counts()',
+     "Add dropna=False when you want the NaN count shown rather than skipped."),
+
+    ("pandas", "pd.MultiIndex.from_product",
+     'pd.MultiIndex.from_product([a, b], names=[...]).to_frame(index=False)',
+     "Every combination of two or more lists, which is how you build the set of "
+     "rows that SHOULD exist. Join your data onto it and the gaps become rows.",
+     'pd.MultiIndex.from_product([SUBJECTS, TIMES], names=["SUBJECT", "TIME_H"])',
+     "Absence is not a value, so no amount of filtering the rows you have will "
+     "find a row that was never collected. This is the way round that."),
+
+    ("pandas", ".abs", 'df["DEV"].abs()',
+     "The size of each value, ignoring sign.",
+     'out = df["DEV_MIN"].abs() > tolerance',
+     "Take it only when you compare, not when you store. A systematic lateness "
+     "is a different finding from random scatter, and abs() hides which it is."),
+
+    ("pandas", ".fillna", 'df["N"].fillna(0)',
+     "Replaces missing values. The usual finish after a left join that left "
+     "gaps where a group legitimately had nothing.",
+     'df["N_MISSING"] = df["N_MISSING"].fillna(0).astype(int)',
+     "Only fill where zero is genuinely the right answer. Filling a missing "
+     "measurement with 0 invents data."),
+
+    ("pandas", ".assign", 'df.assign(ABS_DEV=df["DEV"].abs())',
+     "Returns a copy with a new column added, so it chains without touching the "
+     "original frame.",
+     '.assign(ABS_DEV=df["DEV_MIN"].abs()).groupby("SUBJECT").agg(...)',
+     ""),
+
+    ("pandas", "pd.crosstab", 'pd.crosstab(df["A"], df["B"])',
+     "A frequency table: counts how many ROWS fall into each combination of two "
+     "columns, one down the rows and one across the columns.",
+     'pd.crosstab(ae["GROUP"], ae["SEVERITY"], margins=True, margins_name="Total")',
+     "It counts rows. If one subject contributed six rows, they count six "
+     "times, which is rarely what a safety table should show."),
+
+    ("pandas", "normalize=", 'pd.crosstab(a, b, normalize="index")',
+     "Turns counts into proportions. 'index' makes each row sum to 1, 'columns' "
+     "each column, 'all' the whole table. Multiply by 100 for percent.",
+     'pd.crosstab(a, b, normalize="index") * 100',
+     "Say out loud what you want each row to add up to before you choose, "
+     "because index and columns answer genuinely different questions."),
+
+    ("pandas", "pd.pivot_table",
+     "pd.pivot_table(df, index=..., columns=..., values=..., aggfunc=...)",
+     "The general form of crosstab. Takes a values column and any aggregation, "
+     "so it gives means, maxima or counts of distinct subjects, not just counts.",
+     'pd.pivot_table(ae, index="GROUP", columns="SEVERITY", values="SUBJECT", aggfunc="nunique")',
+     "When you want anything other than a row count, you have outgrown crosstab."),
+
+    ("pandas", "size versus nunique", '.agg("size") against .agg("nunique")',
+     "size counts rows, so it counts events. nunique counts distinct values, so "
+     "on a subject column it counts people.",
+     'ae.groupby("GROUP")["SUBJECT"].nunique()',
+     "The difference between an event count and a patient incidence. Also watch "
+     "the denominator: subjects with no events are absent from an event log, so "
+     "it must come from the enrolment table."),
+
+    ("pandas", ".reindex", '.reindex(["Placebo", "Low", "High"])',
+     "Puts the rows in an order you choose, rather than the alphabetical order "
+     "groupby and crosstab give you.",
+     "ae_counts.reindex(GROUP_ORDER + [\"Total\"])",
+     "A label not present in the data comes back as a row of NaN rather than an "
+     "error, which is sometimes what you want and sometimes a silent typo."),
+
+    ("pandas", ".map", 'df["G"].map({"Low": 0, "High": 1})',
+     "Translates each value through a dictionary. Handy for forcing a custom "
+     "sort order or turning labels into x positions.",
+     'df["_ord"] = df["GROUP"].map({g: i for i, g in enumerate(GROUP_ORDER)})',
+     "Values missing from the dictionary become NaN, which then sort to the end."),
+
+    ("pandas", "looping over groupby", 'for name, part in df.groupby("G"):',
+     "Hands you each group's name and that group's rows in turn. The tidy way "
+     "to draw one line or one series per group.",
+     'for name, part in summary.groupby("DOSE"):\n    ax.errorbar(part["T"], part["M"], yerr=part["SD"], label=name)',
+     "Use it for plotting and for anything genuinely per group. For computing "
+     "statistics, agg and transform are faster and clearer."),
 ]
+
 
 
 ERRORS = [

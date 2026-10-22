@@ -16,6 +16,7 @@ STEPS = [
     ("problem and solution notebooks", "tools/build.py"),
     ("foundations notebook", "tools/build_foundations.py"),
     ("function reference docx", "tools/build_glossary.py"),
+    ("browse page", "tools/build_browse.py"),
 ]
 
 
