@@ -131,7 +131,10 @@ reference/            the foundations notebook and the function reference docx
 tools/function_catalog.py   every function, with what it does and what to watch for
 tools/build_glossary.py     builds the function reference docx
 tools/make_docx.js          turns the glossary data into a Word file
-tools/build_all.py          runs all three builders in order
+tools/build_all.py          runs every builder in order
+tools/build_tutor_pack.py   builds tutor/, the files to upload to a Claude project
+tutor/                      generated tutor pack: instructions, index, reference,
+                            one file per week, solutions kept separate
 index.html            the site, picks today's problem by date
 browse.html           every problem on one page, works offline from the file
 start.py              sets up and opens today's problem on your own computer
@@ -276,6 +279,26 @@ from `tools/offline_tools.txt`, plus node and the `docx` npm package for the
 Word reference. `tools/verify.py week06` and
 `tools/negative_test.py W6D1 W6D2` take a filter, which is much faster than
 running the lot while you are working on one week.
+
+## The tutor project
+
+`tutor/` holds everything a Claude project needs to tutor these problems:
+`TUTOR_INSTRUCTIONS.md` to paste into the project's custom instructions, then
+`tutor_index.md`, `tutor_reference.md`, `tutor_environment.md` and one file per
+week as project knowledge. The week files carry the full problem text, the
+setup code, the toolkit, and every failure message each check can produce, so a
+quoted `FAIL` can be looked up rather than guessed at. Solutions are written to
+separate files, so uploading them is a decision rather than an accident.
+
+It is generated from `tools/specs/`, the same source as the notebooks:
+
+```bash
+python3 tools/build_tutor_pack.py
+```
+
+The whole pack is about 830 KB, which is more than one project should carry, so
+upload the four core files and swap the week file as you move through the
+curriculum.
 
 ### Adding a function to the reference
 
