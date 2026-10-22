@@ -856,6 +856,168 @@ ENTRIES = [
      "NOT the same as skimage's pixel count. The polygon runs through the "
      "centres of the boundary pixels, so it comes out a few percent smaller, "
      "and proportionally more so for small objects. Pick one and say which."),
+    # ---------------------------------------------------- added for week 5
+    ("numpy", "np.cumsum", "np.cumsum(x)",
+     "Running total. The usual way to turn per component variance shares into "
+     "a cumulative curve.",
+     "cumulative = np.cumsum(evr)",
+     "Pair it with np.argmax on a comparison to find the first point crossing "
+     "a level: np.argmax(cumulative >= 0.90) + 1."),
+
+    ("sklearn", "fit and predict", "model.fit(X, y); model.predict(X)",
+     "Every estimator has the same interface, which is why swapping one model "
+     "for another is a one line change. X is 2D, samples by features; y is 1D.",
+     "model = LinearRegression().fit(X_train, y_train)\npred = model.predict(X_test)",
+     "fit returns the fitted model, so the one line form above works. A model "
+     "with no coef_ or feature_importances_ was never fitted."),
+
+    ("sklearn", "train_test_split",
+     "train_test_split(X, y, test_size=0.25, random_state=42)",
+     "Shuffles and splits in one call, returning FOUR things: X train, X test, "
+     "y train, y test, in that order.",
+     "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)",
+     "Swapping the middle two gives shapes that look plausible and results "
+     "that are nonsense. Spend the test set once, at the end."),
+
+    ("sklearn", "random_state", "random_state=42",
+     "Fixes the randomness of a split, a forest or a CV shuffle so a run is "
+     "reproducible.",
+     "RandomForestRegressor(n_estimators=300, random_state=0)",
+     "Without it a rerun changes the answer by more than most real "
+     "improvements do, and you cannot tell the two apart."),
+
+    ("sklearn", "r2_score", "r2_score(y_true, y_pred)",
+     "Fraction of variance explained. 1 is perfect, 0 is no better than "
+     "predicting the mean, and it can go NEGATIVE on held out data.",
+     "r2_test = r2_score(y_test, pred_test)",
+     "Unitless, so it compares across problems. A negative value is not an "
+     "error, it means the model is worse than the mean."),
+
+    ("sklearn", "mean_squared_error", "np.sqrt(mean_squared_error(y_true, y_pred))",
+     "RMSE, the typical size of an error in the units of y, which is the "
+     "number to quote to a pharmacologist.",
+     "rmse = np.sqrt(mean_squared_error(y_test, pred_test))",
+     "Take the square root yourself. The squared=False argument exists only in "
+     "some versions and was replaced by a separate function in newer ones."),
+
+    ("sklearn", "KFold", "KFold(n_splits=5, shuffle=True, random_state=1)",
+     "Splits the data into k parts so every sample is tested exactly once, "
+     "giving k estimates rather than one.",
+     "kf = KFold(n_splits=5, shuffle=True, random_state=1)",
+     "Shuffle matters. Without it the folds are consecutive blocks of the "
+     "file, so any ordering by site, cohort or date confounds them."),
+
+    ("sklearn", "cross_val_score",
+     'cross_val_score(model, X, y, cv=kf, scoring="r2")',
+     "Runs the whole cross-validation and returns the k fold scores.",
+     "scores = cross_val_score(pipe, X, y, cv=kf, scoring='r2')\nscores.mean(), scores.std(ddof=1)",
+     "Report the mean AND the spread. A mean of 0.4 from folds spanning 0.1 to "
+     "0.7 is a very different claim from one made of folds all near 0.4."),
+
+    ("sklearn", "Pipeline",
+     'Pipeline([("sel", SelectKBest(...)), ("model", LinearRegression())])',
+     "Chains steps into one estimator, so cross-validation refits every step "
+     "on each training fold rather than once on everything.",
+     "pipe = Pipeline([('sel', SelectKBest(f_regression, k=6)), ('model', LinearRegression())])",
+     "A pipeline has no coef_ of its own; reach the model with pipe[-1]. "
+     "make_pipeline is the same thing without naming the steps."),
+
+    ("sklearn", "data leakage", "anything fitted before the split",
+     "Information from the test data reaching the model. Usually silent, "
+     "always flattering.",
+     "WRONG: select features on all data, then cross-validate\n"
+     "RIGHT: put the selector inside a Pipeline",
+     "The rule: anything that LEARNS from the data belongs inside the "
+     "pipeline. Scaling learns a mean, imputation learns a fill value, "
+     "selection learns which columns. Only per row operations such as a log "
+     "are safe outside."),
+
+    ("sklearn", "SelectKBest", "SelectKBest(f_regression, k=6)",
+     "Keeps the k features most associated with the target. "
+     ".get_support() gives a boolean mask of which were chosen.",
+     "pipe = Pipeline([('sel', SelectKBest(f_regression, k=6)), ('model', LinearRegression())])",
+     "The classic leakage source. Fitted on all the data it picks the columns "
+     "that happen to match the target in the very rows you will test on, which "
+     "can report a solid result for pure noise."),
+
+    ("sklearn", "RandomForestRegressor",
+     "RandomForestRegressor(n_estimators=300, random_state=0)",
+     "Many decision trees on bootstrap samples, averaged. Needs no scaling and "
+     "captures interactions and curvature nobody specified.",
+     "rf = RandomForestRegressor(n_estimators=300, random_state=0).fit(X_train, y_train)",
+     "Unrestricted it fits training data almost perfectly, so the train to "
+     "test gap is large. That is capacity, not understanding, and on smooth "
+     "data a linear model often still wins on the test set."),
+
+    ("sklearn", "feature_importances_", "rf.feature_importances_",
+     "Impurity importance: how much each feature reduced error at the splits "
+     "using it. Free with training, and sums to 1.",
+     "pd.Series(rf.feature_importances_, index=FEATURES).sort_values(ascending=False)",
+     "Biased toward features with many distinct values, so a continuous noise "
+     "column can outrank a real binary one. It also splits credit arbitrarily "
+     "between correlated features."),
+
+    ("sklearn", "permutation_importance",
+     "permutation_importance(model, X_test, y_test, n_repeats=20, random_state=0)",
+     "Shuffles one column at a time and measures how much the score falls. "
+     "Read .importances_mean.",
+     "perm = permutation_importance(rf, X_test, y_test, n_repeats=20, random_state=0)",
+     "Compute it on HELD OUT data, or it rewards memorisation. No cardinality "
+     "bias and the units are score units. A negative value means the model "
+     "should never have leaned on that feature."),
+
+    ("sklearn", "StandardScaler", "StandardScaler().fit_transform(X)",
+     "Centres each feature and scales it to unit variance.",
+     "make_pipeline(StandardScaler(), ElasticNet(alpha=0.05))",
+     "Required, not advisory, for anything that penalises coefficient size or "
+     "maximises variance. It learns a mean and an SD, so it belongs INSIDE the "
+     "pipeline."),
+
+    ("sklearn", "ElasticNet", "ElasticNet(alpha=0.05, l1_ratio=0.5)",
+     "Least squares plus a penalty on coefficients: L1 drives them to exactly "
+     "zero, L2 shrinks smoothly and shares credit between correlated features.",
+     "make_pipeline(StandardScaler(), ElasticNet(alpha=0.05, l1_ratio=0.5, random_state=0))",
+     "The penalty is in COEFFICIENT units, so without standardising, which "
+     "features survive depends on the units they were recorded in. A feature "
+     "in grams is charged a thousandth of the same feature in kilograms."),
+
+    ("sklearn", "ElasticNetCV", "ElasticNetCV(l1_ratio=0.5, cv=5, random_state=0)",
+     "Cross-validates over a grid of alphas and keeps the best, exposed as "
+     ".alpha_.",
+     "encv = make_pipeline(StandardScaler(), ElasticNetCV(l1_ratio=0.5, cv=5))",
+     "Choosing alpha this way uses the training data only, so the test set "
+     "stays clean. Picking the alpha with the best test score instead turns "
+     "the test set into training data."),
+
+    ("sklearn", "make_pipeline", "make_pipeline(StandardScaler(), ElasticNet())",
+     "Pipeline without having to name the steps; names are generated from the "
+     "class.",
+     "pipe = make_pipeline(StandardScaler(), ElasticNet(alpha=0.05))\npipe[-1].coef_",
+     "pipe[-1] gets the final estimator whatever it is called, which is how "
+     "you reach coef_ or alpha_."),
+
+    ("sklearn", "PCA", "PCA().fit(Z)",
+     "Finds the perpendicular directions of greatest variance and rewrites "
+     "each sample in terms of them.",
+     "Z = StandardScaler().fit_transform(panel)\npca = PCA().fit(Z)\nscores = pca.transform(Z)",
+     "Standardise first, without exception. PCA maximises variance, and "
+     "variance is in squared feature units, so otherwise PC1 just points along "
+     "whichever column has the biggest numbers."),
+
+    ("sklearn", "explained_variance_ratio_", "pca.explained_variance_ratio_",
+     "The share of total variance each component carries, summing to 1.",
+     "n_for_90 = int(np.argmax(np.cumsum(evr) >= 0.90) + 1)",
+     "It answers how many things your panel is really measuring. Note that "
+     "components explain variance in X with no reference to any outcome, so a "
+     "small component can still be the clinically important one."),
+
+    ("sklearn", "components_", "pca.components_",
+     "The loadings: one ROW per component, one column per original feature, "
+     "saying what each component is made of.",
+     'pd.DataFrame(pca.components_, columns=FEATURES, index=["PC1", "PC2"])',
+     "The sign of a whole component is arbitrary, so only read signs RELATIVE "
+     "to each other within one row. Sort by absolute loading to find the "
+     "dominant features."),
 ]
 
 

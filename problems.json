@@ -198,5 +198,55 @@
     "est": "20-30 min",
     "path": "problems/week04/w4d5_imaging_pipeline_animals.ipynb",
     "solution": "solutions/week04/w4d5_imaging_pipeline_animals_solution.ipynb"
+  },
+  {
+    "id": "W5D1",
+    "week": 5,
+    "day": 1,
+    "title": "Predicting clearance: the train/test split and why it exists",
+    "topic": "scikit-learn: train_test_split, fit and predict, R2 and RMSE, optimism",
+    "est": "20-30 min",
+    "path": "problems/week05/w5d1_sklearn_train_test.ipynb",
+    "solution": "solutions/week05/w5d1_sklearn_train_test_solution.ipynb"
+  },
+  {
+    "id": "W5D2",
+    "week": 5,
+    "day": 2,
+    "title": "Cross-validation, and the leak that invents a result from noise",
+    "topic": "scikit-learn: KFold, cross_val_score, Pipeline, and data leakage",
+    "est": "20-30 min",
+    "path": "problems/week05/w5d2_sklearn_cv_leakage.ipynb",
+    "solution": "solutions/week05/w5d2_sklearn_cv_leakage_solution.ipynb"
+  },
+  {
+    "id": "W5D3",
+    "week": 5,
+    "day": 3,
+    "title": "Random forests, and two different answers to which feature matters",
+    "topic": "scikit-learn: RandomForestRegressor, impurity importance, permutation importance",
+    "est": "20-30 min",
+    "path": "problems/week05/w5d3_sklearn_random_forest.ipynb",
+    "solution": "solutions/week05/w5d3_sklearn_random_forest_solution.ipynb"
+  },
+  {
+    "id": "W5D4",
+    "week": 5,
+    "day": 4,
+    "title": "Elastic net: why you must standardise, and what the penalty buys",
+    "topic": "scikit-learn: ElasticNet, standardisation, regularisation paths, ElasticNetCV",
+    "est": "20-30 min",
+    "path": "problems/week05/w5d4_sklearn_elastic_net.ipynb",
+    "solution": "solutions/week05/w5d4_sklearn_elastic_net_solution.ipynb"
+  },
+  {
+    "id": "W5D5",
+    "week": 5,
+    "day": 5,
+    "title": "PCA on a correlated covariate panel",
+    "topic": "scikit-learn: PCA, explained variance, loadings, projecting onto components",
+    "est": "20-30 min",
+    "path": "problems/week05/w5d5_sklearn_pca.ipynb",
+    "solution": "solutions/week05/w5d5_sklearn_pca_solution.ipynb"
   }
 ]

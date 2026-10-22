@@ -261,7 +261,40 @@ CASES = [
                   "group_stats['_o'] = group_stats['GROUP'].map({g: i for i, g in enumerate(GROUP_ORDER)})\n"
                   "group_stats = group_stats.sort_values('_o').drop(columns=['_o']).reset_index(drop=True)",
      "counted FIELDS"),
+# ------------------------------------------------------------ week 5
+    ("W5D1", "a", "X_train, y_train, X_test, y_test = train_test_split(X, y, test_size=0.25, random_state=42)",
+     "unpacking order"),
+    ("W5D1", "a", "X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25)",
+     "random_state=42"),
+    ("W5D1", "b", "r2_test = float(r2_score(y_train, model.predict(X_train)))", "training data"),
+    ("W5D1", "b", "rmse_test = float(mean_squared_error(y_test, pred_test))", "not its root"),
+    ("W5D1", "c", "optimism = float(r2_test - r2_train)", "sign the wrong way"),
+
+    ("W5D2", "a", "cv_sd = float(cv_scores.std())", "ddof=0"),
+    ("W5D2", "b", "X_leaky = X_panel", "no selection happened"),
+    ("W5D2", "c", "cv_clean_mean = cv_leaky_mean", "pipeline was run on"),
+    ("W5D2", "c", "leak_inflation = cv_clean_mean - cv_leaky_mean", "sign the wrong way"),
+
+    ("W5D3", "a", "gap_rf = float(r2_test_rf - r2_train_rf)", "sign the wrong way"),
+    ("W5D3", "b", "imp_impurity = imp_impurity.sort_values(ascending=True)", "not sorted descending"),
+    ("W5D3", "c", "imp_perm = pd.Series(permutation_importance(rf, X_train, y_train,\n"
+                  "    n_repeats=20, random_state=0).importances_mean,\n"
+                  "    index=FEATURES).sort_values(ascending=False)", "TRAINING data"),
+    ("W5D3", "c", "noise_rank_perm = noise_rank_perm - 1", "not the position"),
+
+    ("W5D4", "a", "coef_raw = coef_scaled", "matches the standardised fit"),
+    ("W5D4", "b", "path['R2_TEST'] = path['R2_TRAIN']", "training scores"),
+    ("W5D4", "c", "n_nonzero_cv = len(FEATURES) - n_nonzero_cv", "coefficients that ARE zero"),
+
+    ("W5D5", "a", "pca = PCA().fit(panel); evr = pca.explained_variance_ratio_", "RAW panel"),
+    ("W5D5", "a", "evr_unscaled_first = float(evr[0])", "also fitted on scaled"),
+    ("W5D5", "b", "cumulative = evr", "running total"),
+    ("W5D5", "b", "n_for_90 = n_for_90 - 1", "0 based position"),
+    ("W5D5", "c", "loadings = pd.DataFrame(pca.components_.T, columns=['PC%d' % (i+1)\n"
+                  "    for i in range(pca.components_.shape[0])], index=FEATURES)", "transposed"),
+    ("W5D5", "c", "pc1_top3 = pc1_top3[::-1]", "ascending order"),
 ]
+
 
 
 

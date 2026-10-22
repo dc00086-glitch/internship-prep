@@ -121,8 +121,9 @@ kids.push(h2("Contents"));
  "5. scipy",
  "6. matplotlib",
  "7. scikit-image and OpenCV",
- "8. The house rules",
- "9. Error messages, and what they mean"].forEach(function (line) {
+ "8. scikit-learn",
+ "9. The house rules",
+ "10. Error messages, and what they mean"].forEach(function (line) {
   kids.push(soft(line, { spacing: { after: 40 } }));
 });
 
@@ -151,6 +152,7 @@ const SECTION_TITLES = {
   "scipy": "5. scipy",
   "matplotlib": "6. matplotlib",
   "imaging": "7. scikit-image and OpenCV",
+  "sklearn": "8. scikit-learn",
 };
 
 D.groups.forEach(function (group) {
@@ -198,7 +200,7 @@ D.groups.forEach(function (group) {
 });
 
 // --- 6. house rules
-kids.push(h1("8. The house rules"));
+kids.push(h1("9. The house rules"));
 kids.push(body("These are enforced by the check() cell in every problem, not just mentioned. " +
                "If you break one, the check names it."));
 D.rules.forEach(function (r) {
@@ -210,7 +212,7 @@ D.rules.forEach(function (r) {
 });
 
 // --- 7. errors
-kids.push(h1("9. Error messages, and what they mean"));
+kids.push(h1("10. Error messages, and what they mean"));
 kids.push(body("Read the LAST line of a traceback first. It names the problem. The lines " +
                "above it only say where it happened."));
 const errRows = [new TableRow({
