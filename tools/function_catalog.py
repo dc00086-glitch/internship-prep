@@ -713,6 +713,149 @@ ENTRIES = [
      "conc = sol.y[0] / V_L",
      "sol.y is always two dimensional, even for one compartment, so sol.y[0] "
      "is how you get a 1D array out."),
+    # ---------------------------------------------------- added for week 4
+    ("pandas", "building a DataFrame from rows", "pd.DataFrame(list_of_dicts)",
+     "Collect one dictionary per row in a list, then build the table once at "
+     "the end. Clearer and far faster than growing a frame in a loop.",
+     "rows.append({\"ANIMAL\": a, \"N_CELLS\": n})\ndf = pd.DataFrame(rows)",
+     "The dictionary keys become the column names, so keep them consistent "
+     "across rows or you get columns full of NaN."),
+
+    ("pandas", "three level aggregation", ".groupby(...).agg(...) once per level",
+     "Summarise at each level of nesting before moving up: cells to fields, "
+     "fields to animals, animals to groups.",
+     "per_field -> per_animal -> group_stats",
+     "Each unit counts once at its own level. Pooling instead weights by how "
+     "much data happened to sit underneath, which is usually a measure of "
+     "technical luck rather than biology."),
+
+    ("matplotlib", "ax.imshow", 'ax.imshow(img, cmap="gray", vmin=0, vmax=255)',
+     "Displays an array as an image. Row 0 is drawn at the top.",
+     'ax.imshow(field, cmap="gray", vmin=0, vmax=255)\nax.axis("off")',
+     "Without vmin and vmax it autoscales each image to its own range, which "
+     "makes two images with different exposures look identical. Fix the range "
+     "whenever you are comparing."),
+
+    ("imaging", "images as arrays", "img[row, column]",
+     "A greyscale image is a 2D numpy array, usually uint8 from 0 to 255. "
+     "img.shape is (height, width) and row 0 is the top.",
+     "field.shape, field.dtype, field[:4, :4]",
+     "uint8 arithmetic WRAPS: 250 + 10 gives 4, not 260. Convert to float "
+     "before any arithmetic you care about."),
+
+    ("imaging", "filters.threshold_otsu", "filters.threshold_otsu(img)",
+     "Computes a threshold from the image's own histogram, splitting it into "
+     "background and foreground.",
+     "mask = img > filters.threshold_otsu(img)",
+     "Because it is derived per image it follows changes in illumination, "
+     "which a hard coded number cannot. It assumes two populations, so on a "
+     "field that is almost all background it cuts somewhere arbitrary."),
+
+    ("imaging", "filters.gaussian", "filters.gaussian(img, sigma=1.5)",
+     "Blurs the image, averaging each pixel with its neighbours. Removes "
+     "pixel level noise before thresholding.",
+     "smoothed = filters.gaussian(field, sigma=1.5)",
+     "It returns FLOATS rescaled to 0 to 1, not uint8, so a threshold computed "
+     "on the original is meaningless on the result. Keep sigma well below the "
+     "size of the objects you are measuring."),
+
+    ("imaging", "measure.label", "measure.label(mask)",
+     "Connected component labelling. Background becomes 0 and each separate "
+     "object gets its own integer, so labels.max() counts them.",
+     "labels = measure.label(mask)\nn = int(labels.max())",
+     "connectivity=2, the default in 2D, joins objects touching only at a "
+     "corner. connectivity=1 uses the four edge neighbours only."),
+
+    ("imaging", "measure.regionprops_table",
+     "measure.regionprops_table(labels, intensity_image=img, properties=(...))",
+     "Measures every labelled object at once and returns a dict of arrays, "
+     "which goes straight into pd.DataFrame.",
+     'pd.DataFrame(measure.regionprops_table(labels, intensity_image=field,\n'
+     '    properties=("label", "area", "eccentricity", "mean_intensity")))',
+     "area is in PIXELS until you multiply by the pixel size. Properties with "
+     "more than one number, such as centroid, arrive as centroid-0 and "
+     "centroid-1."),
+
+    ("imaging", "eccentricity", 'properties=("eccentricity",)',
+     "Shape measure from 0 for a perfect circle to 1 for a line. Separates "
+     "round cells from elongated ones and from merged pairs.",
+     "cells[cells[\"eccentricity\"] < 0.7]",
+     "Two touching cells label as one object with roughly double the area and "
+     "a stretched shape, so area and eccentricity together spot them."),
+
+    ("imaging", "connectivity", "measure.label(mask, connectivity=1)",
+     "Which neighbours count as connected. 1 means the four edge neighbours, "
+     "2 also counts the four diagonals and is the 2D default.",
+     "measure.label(mask, connectivity=1)",
+     "Diagonal connectivity merges objects that touch only at a corner, which "
+     "is usually right for cells and occasionally not."),
+
+    ("imaging", "morphology.opening", "morphology.opening(mask, morphology.disk(2))",
+     "Erosion then dilation. Deletes anything the footprint cannot fit inside "
+     "and restores the survivors, so it removes speckle without shrinking "
+     "real objects.",
+     "mask_open = morphology.opening(mask_raw, morphology.disk(2))",
+     "Too small a footprint leaves speckle; too large eats thin parts of real "
+     "objects. Check against the thinnest structure you care about."),
+
+    ("imaging", "morphology.closing", "morphology.closing(mask, morphology.disk(2))",
+     "Dilation then erosion. Fills small gaps and joins things that nearly "
+     "touch.",
+     "morphology.closing(mask, morphology.disk(2))",
+     "It will also MERGE two cells sitting within the footprint of each other, "
+     "silently costing you a count. For holes inside objects prefer "
+     "binary_fill_holes, which cannot do that."),
+
+    ("imaging", "morphology.disk", "morphology.disk(2)",
+     "A roughly circular footprint of the given radius, the usual choice for "
+     "round objects because it treats every direction alike.",
+     "morphology.opening(mask, morphology.disk(2))",
+     "The radius is the thing to tune, and it is in pixels."),
+
+    ("imaging", "binary_fill_holes", "ndi.binary_fill_holes(mask)",
+     "Fills background regions completely enclosed by foreground, whatever "
+     "their size or shape. The right tool for cells that stain as rings.",
+     "from scipy import ndimage as ndi\nmask_filled = ndi.binary_fill_holes(mask_open)",
+     "Lives in scipy.ndimage, not skimage. Works topologically rather than "
+     "geometrically, so unlike closing it can never merge two objects."),
+
+    ("imaging", "clear_border", "segmentation.clear_border(mask)",
+     "Removes every object touching the edge of the frame, which are only "
+     "partly imaged.",
+     "mask_clean = segmentation.clear_border(mask_filled)",
+     "Right for PER CELL measurements, since a cropped cell gives a wrong "
+     "area, shape and intensity. Wrong for DENSITY, where it undercounts a "
+     "real quantity. The question decides, not the image."),
+
+    ("imaging", "cv2.GaussianBlur", "cv2.GaussianBlur(img, (5, 5), 0)",
+     "OpenCV's blur. The kernel is given as (width, height) and both must be "
+     "ODD. A sigma of 0 means derive it from the kernel size.",
+     "blurred = cv2.GaussianBlur(field, (5, 5), 0)",
+     "OpenCV sizes are (width, height), the opposite of a numpy shape. Most "
+     "OpenCV functions also want uint8 and will not accept floats."),
+
+    ("imaging", "cv2.threshold",
+     "t, binimg = cv2.threshold(img, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)",
+     "Thresholds an image, returning BOTH the threshold used and the result.",
+     "t_cv, binary = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)",
+     "It returns a PAIR, so unpack it. Adding THRESH_OTSU makes it compute the "
+     "threshold and ignore the value you passed, which is why that argument is "
+     "written as 0. The output is uint8 0 and 255, not booleans."),
+
+    ("imaging", "cv2.findContours",
+     "cv2.findContours(binimg, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)",
+     "Traces the outline of every object. RETR_EXTERNAL keeps outermost "
+     "contours only; CHAIN_APPROX_SIMPLE compresses straight runs of points.",
+     "contours = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)[-2]",
+     "It returned three values in OpenCV 3 and two in 4 and 5, so taking [-2] "
+     "is the version proof way to get the contours."),
+
+    ("imaging", "cv2.contourArea", "cv2.contourArea(c)",
+     "The area of the polygon through a contour's boundary points.",
+     "areas = [cv2.contourArea(c) for c in contours]",
+     "NOT the same as skimage's pixel count. The polygon runs through the "
+     "centres of the boundary pixels, so it comes out a few percent smaller, "
+     "and proportionally more so for small objects. Pick one and say which."),
 ]
 
 

@@ -219,8 +219,50 @@ CASES = [
     ("W3D5", "b", "emax1 = float(emax1) * 2.0", "not the fitted ceiling"),
     ("W3D5", "c", "hill = 1.0", "never moved"),
     ("W3D5", "c", "def sigmoid_model(c, emax, ec50, h):\n"
-                  "    return emax * c ** h / (ec50 + c ** h)", "h = 1 should give"),
+                  "    return emax * c ** h / (ec50 + c ** h)", "h is raised on the ec50 term"),
+# ------------------------------------------------------------ week 4
+    ("W4D1", "a", "mask = field1 <= otsu_t", "inverted"),
+    ("W4D1", "a", "frac_fg = float(mask.mean()) * 100.0", "percent"),
+    ("W4D1", "b", "otsu_t2 = otsu_t", "field1's threshold"),
+    ("W4D1", "b", "frac_fixed_2 = frac_otsu_2", "FIXED_T was not actually used"),
+    ("W4D1", "c", "n_obj_smooth = n_obj_raw", "equals the raw count"),
+
+    ("W4D2", "a", "mask_open = morphology.opening(mask_raw, morphology.disk(3))",
+     "radius 3 footprint"),
+    ("W4D2", "a", "n_obj_open = n_obj_raw", "counted on mask_raw"),
+    ("W4D2", "b", "mask_filled = morphology.closing(mask_open, morphology.disk(4))",
+     "result of a closing"),
+    ("W4D2", "b", "n_hole_px = int(mask_filled.sum())", "total pixel count"),
+    ("W4D2", "c", "n_border_objects = n_obj_clean", "number REMAINING"),
+
+    ("W4D3", "b", "cells = props[props['area'] >= MIN_AREA].reset_index(drop=True)\n"
+                  "n_cells = int(len(cells)); n_dropped = int(len(props) - len(cells))",
+     "only the lower bound"),
+    ("W4D3", "b", "n_dropped = n_cells", "number KEPT"),
+    ("W4D3", "c", "mean_area = float(props['area'].mean())", "every object"),
+    ("W4D3", "c", "mean_intensity = float((cells['mean_intensity'] * cells['area']).sum()"
+                  " / cells['area'].sum())", "pixel weighted"),
+
+    ("W4D4", "a", "t_cv = cv2.threshold(blurred, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)",
+     "tuple"),
+    ("W4D4", "c", "areas = [float(cv2.arcLength(c, True)) for c in contours]", "perimeters"),
+    ("W4D4", "c", "n_cells_cv = int(len(contours))", "counted every contour"),
+    ("W4D4", "c", "area_ratio = 1.0 / area_ratio", "other way up"),
+
+    ("W4D5", "b", "per_animal['MEAN_INTENSITY'] = [\n"
+                  "    float((g['N_CELLS'] * g['MEAN_INTENSITY']).sum() / g['N_CELLS'].sum())\n"
+                  "    for _, g in per_field.sort_values('ANIMAL').groupby('ANIMAL')]",
+     "weighted by how many cells"),
+    ("W4D5", "c", "group_stats['SD'] = group_stats['SD'] / np.sqrt(group_stats['N_ANIMALS'])",
+     "SEM"),
+    ("W4D5", "c", "group_stats = (per_field.groupby('GROUP')\n"
+                  "    .agg(MEAN=('MEAN_INTENSITY','mean'), SD=('MEAN_INTENSITY','std'),\n"
+                  "         N_ANIMALS=('MEAN_INTENSITY','size')).reset_index())\n"
+                  "group_stats['_o'] = group_stats['GROUP'].map({g: i for i, g in enumerate(GROUP_ORDER)})\n"
+                  "group_stats = group_stats.sort_values('_o').drop(columns=['_o']).reset_index(drop=True)",
+     "counted FIELDS"),
 ]
+
 
 
 

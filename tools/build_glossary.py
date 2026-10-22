@@ -19,7 +19,7 @@ import datetime
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPEC_DIR = ROOT / "tools" / "specs"
 OUT = ROOT / "reference" / "function_reference.docx"
-GROUP_ORDER = ["Python", "numpy", "pandas", "scipy", "matplotlib"]
+GROUP_ORDER = ["Python", "numpy", "pandas", "scipy", "matplotlib", "imaging"]
 
 
 def load(path, name):
