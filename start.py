@@ -117,15 +117,33 @@ def already_installed(with_torch):
     return info.get("hash") == req_hash(with_torch)
 
 
-def pip_install(args, label):
+def pip_install(args, label, fatal=True):
     step(label)
     code = run([sys.executable, "-m", "pip", "install"] + list(args))
-    if code != 0:
+    if code != 0 and fatal:
         die("the install failed.",
             "The usual cause is no internet connection, since the first run has",
             "to download the packages once. Check the connection and run it again.",
             "If you are behind a proxy that blocks pip, install these yourself:",
             "    " + " ".join(REQS.read_text().split()[-8:]))
+    return code == 0
+
+
+def install_torch():
+    """CPU wheels first, then plain PyPI. Returns True if torch is installed."""
+    ok = pip_install(["-r", str(REQS_TORCH), "--index-url", TORCH_CPU_INDEX,
+                      "--retries", "2"],
+                     "Installing PyTorch, CPU build, used by week 6", fatal=False)
+    if ok:
+        return True
+    say("")
+    say("   The PyTorch CPU download site was not reachable, which usually means")
+    say("   a proxy is blocking it. Trying the ordinary package index instead.")
+    say("   That build is larger on Linux, because it carries GPU libraries")
+    say("   nothing here uses.")
+    return pip_install(["-r", str(REQS_TORCH), "--retries", "2"],
+                       "Installing PyTorch from the ordinary package index",
+                       fatal=False)
 
 
 def install_packages(with_torch, force=False):
@@ -135,13 +153,18 @@ def install_packages(with_torch, force=False):
     pip_install(["--upgrade", "pip"], "Updating pip")
     pip_install(["-r", str(REQS)], "Installing numpy, pandas, matplotlib, scipy, "
                                    "scikit-learn, scikit-image, OpenCV and JupyterLab")
-    if with_torch:
-        pip_install(["-r", str(REQS_TORCH), "--index-url", TORCH_CPU_INDEX],
-                    "Installing PyTorch, CPU build, used by week 6")
-    STAMP.write_text(json.dumps({"hash": req_hash(with_torch),
-                                 "torch": bool(with_torch)}, indent=2))
+    got_torch = install_torch() if with_torch else False
+    # Only record torch as done if it really installed, so the next run retries.
+    STAMP.write_text(json.dumps({"hash": req_hash(got_torch),
+                                 "torch": bool(got_torch)}, indent=2))
     say("")
-    say("Install finished. From now on this starts up offline.")
+    if with_torch and not got_torch:
+        say("Everything installed except PyTorch, which only week 6 needs. The")
+        say("other 35 problems are ready to go. Run this again when you have a")
+        say("connection that allows it, or use python start.py --no-torch to")
+        say("stop it trying.")
+    else:
+        say("Install finished. From now on this starts up offline.")
 
 
 def missing_packages(with_torch):
@@ -236,9 +259,14 @@ def launch_jupyter(notebook):
     say("   A browser tab should open with the notebook in it.")
     say("   Leave this window open while you work. Press Ctrl+C twice here to stop.")
     say("")
+    extra = []
+    # Jupyter refuses to start as root unless told to, which only comes up in
+    # a container or in WSL as root, never on an ordinary laptop account.
+    if hasattr(os, "geteuid") and os.geteuid() == 0:
+        extra.append("--allow-root")
     last = 127
     for base in jupyter_candidates():
-        last = run(base + [str(notebook)])
+        last = run(base + extra + [str(notebook)])
         if last != 127:
             return last
     die("could not start JupyterLab.",
@@ -362,7 +390,7 @@ def main(argv):
         say("Setup done. Run python start.py to open today's problem.")
         return 0
 
-    still_missing = missing_packages(with_torch)
+    still_missing = [m for m in missing_packages(with_torch) if m != "torch"]
     if still_missing:
         die("these packages are still missing after the install: %s"
             % ", ".join(still_missing),

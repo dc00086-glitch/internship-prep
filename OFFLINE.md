@@ -52,6 +52,12 @@ scikit-image, OpenCV, PyTorch and JupyterLab into it, and then opens today's
 problem in your browser. Expect a few minutes, a few hundred megabytes of
 download, and a bit over a gigabyte on disk once it is unpacked.
 
+One caveat on Linux. PyTorch is fetched from its CPU only download site, and
+if a proxy blocks that site the launcher falls back to the ordinary package
+index, which on Linux ships a build carrying about 5 GB of GPU libraries that
+nothing here uses. It works, it is just large. `python start.py --no-torch`
+avoids it entirely until you reach week 6.
+
 Every run after that is offline and takes a couple of seconds.
 
 Nothing is installed into your system Python and nothing outside this folder
@@ -143,9 +149,11 @@ install the packages yourself with
 needs internet. Check the connection and run it again; the install resumes
 rather than starting over.
 
-**PyTorch takes forever.** It is the largest download by far, around 200 MB,
-and only week 6 uses it. `python start.py --no-torch` skips it entirely, and
-you can add it later with `python start.py --setup`.
+**PyTorch takes forever.** It is the largest download by far, around 200 MB
+as the CPU build, and only week 6 uses it. `python start.py --no-torch` skips
+it entirely, and you can add it later with `python start.py --setup`. If the
+install of everything else worked and only PyTorch failed, the launcher says
+so and carries on: the other 35 problems do not need it.
 
 **A notebook says `No module named cv2`** or similar. Something went wrong in
 the install. Run `python start.py --reinstall`.

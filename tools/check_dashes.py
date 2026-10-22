@@ -26,13 +26,22 @@ BANNED = {
 SUFFIXES = {".ipynb", ".html", ".md", ".py", ".json", ".txt",
             ".R", ".r", ".css", ".js", ".yml", ".yaml"}
 
+# Directories that are not ours to police: git internals, caches, and the
+# .venv full of other people's packages that start.py installs.
+SKIP_DIRS = {".git", "__pycache__", ".venv", "venv", ".ipynb_checkpoints",
+             "node_modules"}
+
+
+def ours(path):
+    return not (SKIP_DIRS & set(path.parts))
+
 
 def main():
     hits = []
     for path in sorted(ROOT.rglob("*")):
         if not path.is_file() or path.suffix not in SUFFIXES:
             continue
-        if ".git" in path.parts or "__pycache__" in path.parts:
+        if not ours(path):
             continue
         text = path.read_text(encoding="utf-8", errors="replace")
         for lineno, line in enumerate(text.splitlines(), start=1):
@@ -58,8 +67,7 @@ def main():
             print("  " + hit)
         return 1
     n_files = sum(1 for p in ROOT.rglob("*")
-                  if p.is_file() and p.suffix in SUFFIXES
-                  and ".git" not in p.parts and "__pycache__" not in p.parts)
+                  if p.is_file() and p.suffix in SUFFIXES and ours(p))
     print("Scanned %d files. No em dashes, en dashes or lookalikes. Hyphens only." % n_files)
     return 0
 
