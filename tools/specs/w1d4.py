@@ -28,92 +28,17 @@ is the normal way you find out.
 TASK_MD = '''
 ## Your task
 
-### Part a. Wide to tidy
+Three parts, worked one at a time.
 
-`melt` folds a set of columns down into two: one holding what used to be the
-column **names**, one holding the **values**. That is what turns the timepoint
-from metadata into data you can actually group, filter and plot against.
+| Part | What you work out | Variables to fill in |
+|---|---|---|
+| a | the wide table reshaped into tidy | `tidy` |
+| b | a numeric time column, sorted, index renumbered | `tidy_clean` |
+| c | the repeated rows, and the pivot back to wide | `n_dup_rows`, `wide_again` |
 
-`id_vars` is the list of columns to leave alone. Everything you do not list
-gets folded, so naming `ANIMAL` and `GROUP` is enough; you do not have to list
-the timepoint columns.
-
-Use `var_name` and `value_name` to get the output columns named properly
-straight away, otherwise they arrive as `variable` and `value`.
-
-Fill in `tidy`, with columns `ANIMAL`, `GROUP`, `TIME_LABEL`, `INHIB_PCT`.
-Moves: `wide.melt(id_vars=[...], var_name=..., value_name=...)`.
-Reshape `wide` into `tidy`: one row per animal per timepoint, with these four
-columns, named exactly:
-
-| column | meaning |
-|---|---|
-| `ANIMAL` | animal identifier |
-| `GROUP` | `Vehicle` or `Drug` |
-| `TIME_LABEL` | the original column name, so still the text `T_0`, `T_1`, and so on |
-| `INHIB_PCT` | the percent inhibition value |
-
-### Part b. Make the time column numeric and sort
-
-Your timepoints are still text like `"T_24"`. Strip the prefix and convert, or
-every later step treats them as labels rather than numbers.
-
-This matters more than it looks. Sorting text compares character by character,
-so `"T_24"` sorts **before** `"T_4"`, and a profile ordered that way is
-scrambled in a way that is easy to miss once it is on a plot. Convert first,
-then sort.
-
-Finish by resetting the index. Sorting moves the rows but the old row labels
-travel with them, so without `drop=True` the index comes out shuffled.
-
-Fill in `tidy_clean`, with `ANIMAL`, `GROUP`, `TIME_H`, `INHIB_PCT`, sorted by
-animal then time, index running 0, 1, 2 and up.
-Moves: `.str.replace(..., regex=False)`, `.astype(float)`, `.drop(columns=...)`,
-`.sort_values([...])`, `.reset_index(drop=True)`.
-Build `tidy_clean` from `tidy`:
-- add a numeric column `TIME_H`, the hours pulled out of `TIME_LABEL`, so
-  `T_24` becomes `24.0`,
-- drop the `TIME_LABEL` column, leaving `ANIMAL`, `GROUP`, `TIME_H`,
-  `INHIB_PCT`,
-- sort by `ANIMAL` then `TIME_H`, and reset the index so it runs 0, 1, 2, ...
-
-### Part c. Find the duplicate, then go back to wide
-
-Try the pivot first, and let it fail. `ValueError: Index contains duplicate
-entries` is the reshape telling you two rows claim the same animal and the
-same timepoint, so there is no single value to put in that cell. That is a
-real data problem surfacing, not a coding mistake.
-
-Here the cause is a record that was sent twice, so dropping the exact repeats
-is the right fix. If the two rows had held *different* values it would be a
-scientific question instead, and `pivot_table` with an aggregation would be
-the tool. Knowing which situation you are in means looking first.
-
-Note that `duplicated()` flags only the repeats and leaves the first
-occurrence alone, which is what you want to count. `keep=False` flags both
-copies and would give you double.
-
-Fill in `n_dup_rows`, `wide_again` (index `ANIMAL`, columns the `TIME_H`
-values).
-Moves: `.duplicated().sum()`, `.drop_duplicates()`,
-`.pivot(index=..., columns=..., values=...)`.
-- `n_dup_rows`: a whole number, how many rows of `tidy_clean` are exact repeats
-  of a row that already appeared.
-- `wide_again`: the duplicate-free data pivoted back to wide, with `ANIMAL` as
-  the index and the values of `TIME_H` as the columns, holding `INHIB_PCT`.
-
-If you go straight to `pivot` you will get `ValueError: Index contains
-duplicate entries, cannot reshape`. That error is the clue, not a bug.
-
-### Hints
-- `df.melt(id_vars=[...], var_name=..., value_name=...)` goes wide to tidy.
-- `df["COL"].str.replace("T_", "", regex=False)` strips the prefix, and
-  `.astype(float)` converts it.
-- `df.drop(columns=[...])`, `df.sort_values([...])`,
-  `df.reset_index(drop=True)`.
-- `df.duplicated()` flags every row after the first occurrence, so
-  `.sum()` counts the repeats. `df.drop_duplicates()` removes them.
-- `df.pivot(index=..., columns=..., values=...)` goes tidy to wide.
+Below this you will find the **Setup** cell, then a **Toolkit** cell that
+demonstrates every move on a tiny made up example, then **Part a**, **Part b**
+and **Part c**, each with its own explanation and a cell to write in.
 '''
 
 DATA_CODE = '''
@@ -156,7 +81,29 @@ PARTS = [
     dict(
         label="a",
         prompt_md='''
-### Part a. Wide to tidy
+## Part a. Wide to tidy
+
+`melt` folds a set of columns down into two: one holding what used to be the
+column **names**, one holding the **values**. That is what turns the timepoint
+from metadata into data you can actually group, filter and plot against.
+
+`id_vars` is the list of columns to leave alone. Everything you do not list
+gets folded, so naming `ANIMAL` and `GROUP` is enough; you do not have to list
+the timepoint columns.
+
+Use `var_name` and `value_name` to get the output columns named properly
+straight away, otherwise they arrive as `variable` and `value`.
+
+Fill in `tidy`, with exactly these four columns, named exactly like this:
+
+| column | meaning |
+|---|---|
+| `ANIMAL` | animal identifier |
+| `GROUP` | `Vehicle` or `Drug` |
+| `TIME_LABEL` | the original column name, so still the text `T_0`, `T_1`, and so on |
+| `INHIB_PCT` | the percent inhibition value |
+
+Moves: `wide.melt(id_vars=[...], var_name=..., value_name=...)`.
 ''',
         starter='''
 # Part a. Reshape wide into tidy.
@@ -182,7 +129,25 @@ print(None if tidy is None else tidy.head())
     dict(
         label="b",
         prompt_md='''
-### Part b. Make the time column numeric and sort
+## Part b. Make the time column numeric and sort
+
+Your timepoints are still text like `"T_24"`. Strip the prefix and convert, or
+every later step treats them as labels rather than numbers.
+
+This matters more than it looks. Sorting text compares character by character,
+so `"T_24"` sorts **before** `"T_4"`, and a profile ordered that way is
+scrambled in a way that is easy to miss once it is on a plot. Convert first,
+then sort.
+
+Finish by resetting the index. Sorting moves the rows but the old row labels
+travel with them, so without `drop=True` the index comes out shuffled.
+
+Fill in `tidy_clean`: add a numeric `TIME_H` in hours so `T_24` becomes
+`24.0`, drop `TIME_LABEL`, leaving `ANIMAL`, `GROUP`, `TIME_H`, `INHIB_PCT`,
+sorted by animal then time, index running 0, 1, 2 and up.
+
+Moves: `.str.replace(..., regex=False)`, `.astype(float)`,
+`.drop(columns=...)`, `.sort_values([...])`, `.reset_index(drop=True)`.
 ''',
         starter='''
 # Part b. Numeric TIME_H, drop TIME_LABEL, sort by ANIMAL then TIME_H, reset the index.
@@ -207,7 +172,28 @@ print(None if tidy_clean is None else tidy_clean.head(8))
     dict(
         label="c",
         prompt_md='''
-### Part c. Find the duplicate, then go back to wide
+## Part c. Find the duplicate, then go back to wide
+
+Try the pivot first, and let it fail. `ValueError: Index contains duplicate
+entries` is the reshape telling you two rows claim the same animal and the
+same timepoint, so there is no single value to put in that cell. That is a
+real data problem surfacing, not a coding mistake.
+
+Here the cause is a record that was sent twice, so dropping the exact repeats
+is the right fix. If the two rows had held *different* values it would be a
+scientific question instead, and `pivot_table` with an aggregation would be
+the tool. Knowing which situation you are in means looking first.
+
+Note that `duplicated()` flags only the repeats and leaves the first
+occurrence alone, which is what you want to count. `keep=False` flags both
+copies and would give you double.
+
+Fill in `n_dup_rows`, how many rows of `tidy_clean` repeat a row already seen.
+And `wide_again`, the duplicate-free data pivoted back to wide with `ANIMAL`
+as the index and the values of `TIME_H` as the columns, holding `INHIB_PCT`.
+
+Moves: `.duplicated().sum()`, `.drop_duplicates()`,
+`.pivot(index=..., columns=..., values=...)`.
 ''',
         starter='''
 # Part c. Count the repeated rows, drop them, pivot back to wide.

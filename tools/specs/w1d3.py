@@ -27,71 +27,17 @@ one of the most common ways a PK analysis goes quietly wrong.
 TASK_MD = '''
 ## Your task
 
-### Part a. Get your bearings and drop the predose samples
+Three parts, worked one at a time.
 
-Before anything else, find out how big the dataset really is. Counting rows is
-not counting animals: each animal appears once per timepoint, so the row count
-is a multiple of the animal count.
+| Part | What you work out | Variables to fill in |
+|---|---|---|
+| a | how big the dataset really is, and the post-dose rows | `n_animals`, `df_post` |
+| b | the mean and SD profile for each dose group | `summary` |
+| c | the dosing record joined on, and what is missing from it | `pk_merged`, `n_missing_weight` |
 
-Then drop the predose samples. They are all zero by definition and they would
-drag every mean down and inflate every SD if you left them in a summary.
-
-Fill in `n_animals`, `df_post`.
-Moves: `df["COL"].nunique()`, and boolean filtering `df[df["COL"] > 0]`.
-- `n_animals`: a whole number, how many distinct animals appear in `pk`.
-- `df_post`: the post-dose rows only, meaning `TIME_H` strictly greater than 0.
-  Keep all four columns.
-
-### Part b. Mean and SD profile per dose group
-
-This is split, apply, combine: pandas splits the table into one chunk per
-group and timepoint, computes your statistics on each chunk, and stacks the
-answers back up.
-
-Two details decide whether the result is usable downstream. The grouping keys
-come back sitting in the **index**, not as columns, so `.reset_index()` is
-needed to flatten them. And the aggregation names come out as `mean` and
-`std`, so rename them to the names the task asks for.
-
-Pandas `std` already divides by `n - 1`, so you do not need `ddof` here. That
-is the opposite of numpy.
-
-Build `summary` from `df_post`, with columns `GROUP`, `TIME_H`, `CONC_MEAN`,
-`CONC_SD`.
-Moves: `.groupby([...])["COL"].agg(["mean", "std"])`, `.reset_index()`,
-`.rename(columns={...})`.
-From `df_post`, build `summary`: one row per `GROUP` and `TIME_H` combination,
-with exactly these four columns, named exactly like this:
-
-| column | meaning |
-|---|---|
-| `GROUP` | dose group |
-| `TIME_H` | nominal time in hours |
-| `CONC_MEAN` | mean concentration in that group at that time |
-| `CONC_SD` | **sample** SD of concentration in that group at that time |
-
-`summary` must be a flat DataFrame, so `GROUP` and `TIME_H` are ordinary
-columns and not an index. SD, never SEM.
-
-### Part c. Join the dosing record and recover the real mg/kg
-Starting from the full `pk` table, not `df_post`:
-
-- `pk_merged`: `pk` joined to `demo` on `ANIMAL` in a way that **keeps every
-  row of `pk`**, even for an animal that is missing from the dosing record.
-  Add one new column `DOSE_MG_PER_KG`, which is `DOSE_MG` divided by body
-  weight **in kilograms**. The record stores grams.
-- `n_missing_weight`: a whole number, how many rows of `pk_merged` end up with
-  no body weight.
-
-### Hints
-- `df["COL"].nunique()` counts distinct values.
-- Boolean filtering: `df[df["TIME_H"] > 0]`.
-- `df.groupby([...])["COL"].agg(["mean", "std"])` gives you both statistics at
-  once. Pandas `std` already uses `n - 1`. Then `.reset_index()` flattens it
-  and `.rename(columns={...})` fixes the names.
-- `pd.merge(left, right, on="ANIMAL", how="left")` keeps every left row.
-  Compare `len()` before and after, every time.
-- `df["COL"].isna().sum()` counts the gaps.
+Below this you will find the **Setup** cell, then a **Toolkit** cell that
+demonstrates every move on a tiny made up example, then **Part a**, **Part b**
+and **Part c**, each with its own explanation and a cell to write in.
 '''
 
 DATA_CODE = '''
@@ -150,7 +96,17 @@ PARTS = [
     dict(
         label="a",
         prompt_md='''
-### Part a. Get your bearings and drop the predose samples
+## Part a. Get your bearings and drop the predose samples
+
+Before anything else, find out how big the dataset really is. Counting rows is
+not counting animals: each animal appears once per timepoint, so the row count
+is a multiple of the animal count.
+
+Then drop the predose samples. They are all zero by definition and they would
+drag every mean down and inflate every SD if you left them in a summary.
+
+Fill in `n_animals`, and `df_post` which keeps all four columns.
+Moves: `df["COL"].nunique()`, and boolean filtering `df[df["COL"] > 0]`.
 ''',
         starter='''
 # Part a. Count the animals and keep only post-dose rows.
@@ -174,7 +130,35 @@ print("df_post shape:", None if df_post is None else df_post.shape)
     dict(
         label="b",
         prompt_md='''
-### Part b. Mean and SD profile per dose group
+## Part b. Mean and SD profile per dose group
+
+This is split, apply, combine: pandas splits the table into one chunk per
+group and timepoint, computes your statistics on each chunk, and stacks the
+answers back up.
+
+Two details decide whether the result is usable downstream. The grouping keys
+come back sitting in the **index**, not as columns, so `.reset_index()` is
+needed to flatten them. And the aggregation names come out as `mean` and
+`std`, so rename them.
+
+Pandas `std` already divides by `n - 1`, so you do not need `ddof` here. That
+is the opposite of numpy.
+
+Build `summary` from `df_post`, one row per `GROUP` and `TIME_H` combination,
+with exactly these four columns, named exactly like this:
+
+| column | meaning |
+|---|---|
+| `GROUP` | dose group |
+| `TIME_H` | nominal time in hours |
+| `CONC_MEAN` | mean concentration in that group at that time |
+| `CONC_SD` | **sample** SD of concentration in that group at that time |
+
+It has to be a flat DataFrame, so `GROUP` and `TIME_H` are ordinary columns
+and not an index. SD, never SEM.
+
+Moves: `.groupby([...])["COL"].agg(["mean", "std"])`, `.reset_index()`,
+`.rename(columns={...})`.
 ''',
         starter='''
 # Part b. Mean and sample SD per group per timepoint, from df_post.
@@ -200,7 +184,7 @@ print(summary)
     dict(
         label="c",
         prompt_md='''
-### Part c. Join the dosing record and recover the real mg/kg
+## Part c. Join the dosing record and recover the real mg/kg
 
 Start from `pk`, the full table, not `df_post`.
 
@@ -217,7 +201,10 @@ Body weight is recorded in **grams** and the dose in milligrams, so convert
 before dividing. Sanity check the result against the nominal 1, 3 and 10
 mg/kg.
 
-Fill in `pk_merged` (with a `DOSE_MG_PER_KG` column), `n_missing_weight`.
+Fill in `pk_merged`, which is `pk` joined to `demo` on `ANIMAL` keeping every
+row of `pk`, plus a new `DOSE_MG_PER_KG` column. And `n_missing_weight`, how
+many rows end up with no body weight.
+
 Moves: `pd.merge(left, right, on=..., how="left")`, arithmetic between
 columns, `df["COL"].isna().sum()`.
 ''',

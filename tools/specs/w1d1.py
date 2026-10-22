@@ -23,45 +23,17 @@ here is plain numpy, no pandas.
 TASK_MD = '''
 ## Your task
 
-### Part a. Deal with the BLQ samples
+Three parts, worked one at a time.
 
-The lab handed you `nan` wherever a sample fell below the assay limit. Until
-you know which samples are real, no summary of this profile means anything,
-so this is always step one.
+| Part | What you work out | Variables to fill in |
+|---|---|---|
+| a | which samples are usable, and how many came back BLQ | `measurable`, `n_blq`, `t_meas`, `c_meas` |
+| b | how high the profile got, and when | `cmax`, `tmax` |
+| c | how fast the drug leaves | `t_term`, `c_term`, `lambda_z`, `t_half` |
 
-Build a mask of the usable samples, count the ones that are not, then use that
-mask to pull the usable times and concentrations out. The same mask works on
-both arrays because they are the same length and in the same order.
-
-Fill in `measurable`, `n_blq`, `t_meas`, `c_meas`.
-Moves: `np.isnan`, `~`, `np.sum`, and indexing an array with a mask.
-- `measurable`: a boolean array, `True` where `conc` holds a real number and
-  `False` where the sample came back BLQ.
-- `n_blq`: a whole number, how many samples came back BLQ.
-- `t_meas`, `c_meas`: the times and the concentrations of the measurable
-  samples only, kept in the original time order.
-
-### Part b. Describe the peak
-Using the measurable samples only:
-- `cmax`: the highest observed concentration, in mg/L.
-- `tmax`: the time in hours at which `cmax` was observed.
-
-### Part c. Terminal half-life
-After absorption is over the profile is log-linear, so a straight line through
-the log of concentration gives you the elimination rate constant. Use the
-**last 4 measurable samples**:
-- `t_term`, `c_term`: those last 4 times and concentrations.
-- `lambda_z`: the terminal elimination rate constant in 1/h. Fit a degree 1
-  polynomial to `np.log(c_term)` against `t_term`, then take `lambda_z` as the
-  negative of the fitted slope.
-- `t_half`: the terminal half-life in hours, which is `ln(2) / lambda_z`.
-
-### Hints
-- `np.isnan(x)` gives you a boolean array, and `~` flips a boolean array.
-- A boolean array can be used to index another array of the same length.
-- `np.argmax` gives you the position of the largest value, not the value.
-- `np.polyfit(x, y, deg=1)` returns `[slope, intercept]` in that order.
-- Negative indexing: `a[-4:]` is the last 4 entries of `a`.
+Below this you will find the **Setup** cell, then a **Toolkit** cell that
+demonstrates every move on a tiny made up example, then **Part a**, **Part b**
+and **Part c**, each with its own explanation and a cell to write in.
 '''
 
 DATA_CODE = '''
@@ -94,7 +66,18 @@ PARTS = [
     dict(
         label="a",
         prompt_md='''
-### Part a. Deal with the BLQ samples
+## Part a. Deal with the BLQ samples
+
+The lab handed you `nan` wherever a sample fell below the assay limit. Until
+you know which samples are real, no summary of this profile means anything,
+so this is always step one.
+
+Build a mask of the usable samples, count the ones that are not, then use that
+mask to pull the usable times and concentrations out. The same mask works on
+both arrays because they are the same length and in the same order.
+
+Fill in `measurable`, `n_blq`, `t_meas`, `c_meas`.
+Moves: `np.isnan`, `~`, `np.sum`, and indexing an array with a mask.
 ''',
         starter='''
 # Part a. Deal with the BLQ samples.
@@ -126,7 +109,7 @@ print("c_meas    :", c_meas)
     dict(
         label="b",
         prompt_md='''
-### Part b. Describe the peak
+## Part b. Describe the peak
 
 Cmax and Tmax are two questions about the same point on the curve: how high
 did it get, and when. `np.max` answers the first. The second needs
@@ -161,7 +144,7 @@ print("tmax:", tmax, "h")
     dict(
         label="c",
         prompt_md='''
-### Part c. Terminal half-life
+## Part c. Terminal half-life
 
 Once absorption is finished, elimination is first order, meaning a constant
 fraction leaves per hour. On a log scale that is a straight line, so fitting

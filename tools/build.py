@@ -261,6 +261,26 @@ def build_one(spec, mod_name):
 
     # A toolkit runs after the setup cell, so it must not rebind anything the
     # setup cell made, or the student's data quietly changes under them.
+    # Each part must be its own H2 section. At H3 it nests under the Toolkit
+    # section in Colab, which hides the questions when that section collapses.
+    for part in spec.PARTS:
+        md = part["prompt_md"].strip()
+        heads = [ln for ln in md.splitlines() if ln.startswith("#")]
+        if not heads:
+            raise SystemExit("%s part %s: prompt_md has no heading."
+                             % (spec.PID, part["label"]))
+        level = len(heads[0]) - len(heads[0].lstrip("#"))
+        if level != 2:
+            raise SystemExit(
+                "%s part %s: prompt_md heading is H%d, it must be H2 so the part is a "
+                "sibling of Setup and Toolkit rather than nested inside them."
+                % (spec.PID, part["label"], level))
+        if len(md.split()) < 40:
+            raise SystemExit(
+                "%s part %s: prompt_md is only %d words, which means it is a bare "
+                "heading. Each part needs its own explanation above its cell."
+                % (spec.PID, part["label"], len(md.split())))
+
     if getattr(spec, "TOOLKIT_CODE", None):
         data_ns = {"__name__": "__data_only__"}
         with contextlib.redirect_stdout(io.StringIO()):
@@ -290,7 +310,10 @@ def build_one(spec, mod_name):
                                    "match the checker and match mine."),
                  new_code_cell(spec.DATA_CODE.strip() + "\n")]
         if getattr(spec, "TOOLKIT_MD", None):
-            cells.append(new_markdown_cell(spec.TOOLKIT_MD.strip()))
+            cells.append(new_markdown_cell(
+                spec.TOOLKIT_MD.strip() +
+                "\n\nRun the cell below, then carry on to **Part a**, which is the "
+                "next section down."))
         if getattr(spec, "TOOLKIT_CODE", None):
             cells.append(new_code_cell(spec.TOOLKIT_CODE.strip() + "\n"))
         for part in spec.PARTS:

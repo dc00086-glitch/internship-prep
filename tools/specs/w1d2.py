@@ -30,56 +30,21 @@ Two house rules that apply to everything in this repo:
 TASK_MD = '''
 ## Your task
 
-### Part a. Reduce along the right axis
+Three parts, worked one at a time.
 
-Both of these are one-line reductions. The only thing to get right is which
-direction you collapse, and the rule is that the axis you name is the one that
-disappears.
+| Part | What you work out | Variables to fill in |
+|---|---|---|
+| a | the mean profile, and each subject's own peak | `mean_by_time`, `cmax_by_subject` |
+| b | how much the subjects differ | `sd_by_time`, `cv_by_time` |
+| c | every subject rescaled to their own peak | `norm_conc` |
 
-"Mean at each timepoint" means you want one value per column, so the rows have
-to go. "Each subject's peak" means one value per row, so the columns have to
-go. If you are unsure which you got, print `.shape` of the result and ask
-whether that length is 8 or 9.
+Two house rules apply throughout. Variability is reported as **SD**, never
+SEM. And SD means the **sample** SD with `n - 1`, which numpy will not give
+you unless you ask with `ddof=1`.
 
-Fill in `mean_by_time` (length 9), `cmax_by_subject` (length 8).
-Moves: `conc.mean(axis=...)`, `conc.max(axis=...)`.
-- `mean_by_time`: the mean concentration at each timepoint, so one value per
-  **column**. Length 9.
-- `cmax_by_subject`: each subject's own peak concentration, so one value per
-  **row**. Length 8.
-
-### Part b. Describe the variability
-- `sd_by_time`: the **sample** SD across subjects at each timepoint. Length 9.
-  Use `n - 1` in the denominator.
-- `cv_by_time`: the coefficient of variation at each timepoint as a
-  **percent**, which is `100 * SD / mean`. Length 9.
-
-### Part c. Put every subject on a common scale
-
-Normalising each profile to its own peak strips out the amplitude differences
-so you can compare the **shape** of absorption and elimination between
-subjects. It is a standard first look before any modelling.
-
-You already have each subject's peak from part a, but dividing straight by it
-will fail, because a `(8, 9)` and an `(8,)` do not line up: numpy matches
-shapes from the right and tries 9 against 8. Read the error when it happens,
-it is a useful one to recognise. Make the divisor `(8, 1)` and it works.
-
-Fill in `norm_conc`, shape `(8, 9)`, every row peaking at exactly 1.0.
-Moves: `conc.max(axis=1, keepdims=True)`, or `.reshape(-1, 1)`, then divide.
-- `norm_conc`: shape `(8, 9)`, where every subject's profile has been divided
-  by that **same subject's** own Cmax. Each row must therefore peak at exactly
-  `1.0`.
-
-Do this with broadcasting rather than a `for` loop. A `(8, 9)` array divides
-cleanly by an `(8, 1)` array, but not by an `(8,)` array.
-
-### Hints
-- `axis=0` collapses rows and leaves you one value per column.
-- `axis=1` collapses columns and leaves you one value per row.
-- `np.std(x, axis=..., ddof=1)` is the sample SD.
-- `keepdims=True` keeps the reduced axis as a length 1 axis, which is exactly
-  what makes broadcasting line up. Otherwise `.reshape(-1, 1)` does the same.
+Below this you will find the **Setup** cell, then a **Toolkit** cell that
+demonstrates every move on a tiny made up example, then **Part a**, **Part b**
+and **Part c**, each with its own explanation and a cell to write in.
 '''
 
 DATA_CODE = '''
@@ -115,7 +80,19 @@ PARTS = [
     dict(
         label="a",
         prompt_md='''
-### Part a. Reduce along the right axis
+## Part a. Reduce along the right axis
+
+Both of these are one-line reductions. The only thing to get right is which
+direction you collapse, and the rule is that the axis you name is the one that
+disappears.
+
+"Mean at each timepoint" means you want one value per column, so the rows have
+to go. "Each subject's peak" means one value per row, so the columns have to
+go. If you are unsure which you got, print `.shape` of the result and ask
+whether that length is 8 or 9.
+
+Fill in `mean_by_time` (length 9), `cmax_by_subject` (length 8).
+Moves: `conc.mean(axis=...)`, `conc.max(axis=...)`.
 ''',
         starter='''
 # Part a. Reduce along the right axis.
@@ -139,7 +116,7 @@ print("cmax_by_subject", np.shape(cmax_by_subject), cmax_by_subject)
     dict(
         label="b",
         prompt_md='''
-### Part b. Describe the variability
+## Part b. Describe the variability
 
 Same reduction direction as the mean in part a, since you want the spread
 across subjects at each timepoint.
@@ -177,7 +154,19 @@ print("cv_by_time", np.shape(cv_by_time), np.round(cv_by_time, 1) if cv_by_time 
     dict(
         label="c",
         prompt_md='''
-### Part c. Put every subject on a common scale
+## Part c. Put every subject on a common scale
+
+Normalising each profile to its own peak strips out the amplitude differences
+so you can compare the **shape** of absorption and elimination between
+subjects. It is a standard first look before any modelling.
+
+You already have each subject's peak from part a, but dividing straight by it
+will fail, because a `(8, 9)` and an `(8,)` do not line up: numpy matches
+shapes from the right and tries 9 against 8. Read the error when it happens,
+it is a useful one to recognise. Make the divisor `(8, 1)` and it works.
+
+Fill in `norm_conc`, shape `(8, 9)`, every row peaking at exactly 1.0.
+Moves: `conc.max(axis=1, keepdims=True)`, or `.reshape(-1, 1)`, then divide.
 ''',
         starter='''
 # Part c. Normalise each subject's profile to that subject's own Cmax.

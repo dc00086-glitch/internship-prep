@@ -34,86 +34,18 @@ know. A SEM bar mostly tells them how many animals you ran.
 TASK_MD = '''
 ## Your task
 
-### Part a. Aggregate the cells up to the animal
+Three parts, worked one at a time, and the order matters: cells up to animals
+first, then animals up to groups, then the figure.
 
-This is the step that makes everything after it valid. One row per animal,
-holding that animal's mean across its own cells.
+| Part | What you work out | Variables to fill in |
+|---|---|---|
+| a | one row per animal, out of hundreds of cells | `animal_level` |
+| b | group statistics computed across animals | `group_stats` |
+| c | the figure, means with SD and every animal shown | `fig`, `ax` |
 
-Group by animal and group together, so each animal keeps its treatment label
-and you do not have to join it back on afterwards. Naming the outputs inside
-`.agg()` saves a rename. The aggregation `"size"` counts rows in each group,
-which here means cells per animal.
-
-Keep `N_CELLS` even though nothing downstream divides by it. It is the number
-that shows how unequal the imaging effort was, and therefore why pooling the
-cells would have distorted the group mean.
-
-Fill in `animal_level`, with `ANIMAL`, `GROUP`, `MEAN_INTENSITY`, `N_CELLS`.
-Moves: `.groupby([...]).agg(NAME=("COL", "mean"), ...)`, `.reset_index()`.
-Build `animal_level`: one row per animal, with exactly these columns, named
-exactly:
-
-| column | meaning |
-|---|---|
-| `ANIMAL` | animal identifier |
-| `GROUP` | `Drug` or `Vehicle` |
-| `MEAN_INTENSITY` | mean of that animal's cells |
-| `N_CELLS` | how many cells were measured in that animal |
-
-Flat DataFrame, so `ANIMAL` and `GROUP` are columns and not an index.
-
-### Part b. Group statistics across animals
-Build `group_stats` **from `animal_level`**, one row per group, with exactly:
-
-| column | meaning |
-|---|---|
-| `GROUP` | `Drug` or `Vehicle` |
-| `MEAN` | mean of the animal means in that group |
-| `SD` | **sample** SD of the animal means in that group |
-| `N_ANIMALS` | number of animals in that group |
-
-Sort it by `GROUP`, which puts `Drug` first. Note that the mean of the animal
-means is **not** the mean of all the cells, because the animals contributed
-unequal numbers of cells.
-
-### Part c. The figure
-
-A figure that shows only two means and two error bars hides your whole
-dataset. Overlaying every animal costs one line and lets a reader see the
-spread, the sample size and any outlier at a glance. Make it your default.
-
-Build it the explicit way: get `fig` and `ax` from `plt.subplots()`, then call
-methods on `ax`. `yerr` comes from the `SD` column of `group_stats`, which is
-the SD **across animals**, not across cells and not the SEM.
-
-Label all three of x, y and title. An unlabelled axis makes a figure
-unreadable to everyone except the person who made it, including you in three
-weeks.
-
-Fill in `fig`, `ax`.
-Moves: `plt.subplots(figsize=...)`, `ax.errorbar(..., yerr=..., fmt="o")`,
-`ax.scatter(...)`, `ax.set_xticks`, `ax.set_xticklabels`, `ax.set_xlabel`,
-`ax.set_ylabel`, `ax.set_title`.
-Build a single axes figure, assigned to `fig` and `ax`:
-
-- `fig, ax = plt.subplots(figsize=(6, 4.5))`
-- plot the two group means with `ax.errorbar`, at x positions `0` and `1`, in
-  the row order of `group_stats`, with `yerr` set to the `SD` column and
-  `fmt="o"`,
-- overlay **every animal's own mean** with `ax.scatter`, one point per animal,
-  at the x position of its group. A little jitter on x is welcome but not
-  required,
-- set the x ticks to `[0, 1]` and label them with the group names,
-- set an x label, a y label and a title.
-
-### Hints
-- `df.groupby([...]).agg(MEAN=("COL", "mean"), N=("COL", "size"))` lets you
-  name the output columns as you build them, then `.reset_index()` flattens.
-- `"size"` counts rows, `"std"` in pandas already uses `n - 1`.
-- `ax.errorbar([0, 1], means, yerr=sds, fmt="o", capsize=5)`.
-- For the jitter: `x = np.where(animal_level["GROUP"] == "Drug", 0, 1) +
-  rng.normal(0, 0.04, len(animal_level))`.
-- `ax.set_xticks([0, 1])` then `ax.set_xticklabels([...])`.
+Below this you will find the **Setup** cell, then a **Toolkit** cell that
+demonstrates every move on a tiny made up example, then **Part a**, **Part b**
+and **Part c**, each with its own explanation and a cell to write in.
 '''
 
 DATA_CODE = '''
@@ -155,7 +87,30 @@ PARTS = [
     dict(
         label="a",
         prompt_md='''
-### Part a. Aggregate the cells up to the animal
+## Part a. Aggregate the cells up to the animal
+
+This is the step that makes everything after it valid. One row per animal,
+holding that animal's mean across its own cells.
+
+Group by animal and group together, so each animal keeps its treatment label
+and you do not have to join it back on afterwards. Naming the outputs inside
+`.agg()` saves a rename. The aggregation `"size"` counts rows in each group,
+which here means cells per animal.
+
+Keep `N_CELLS` even though nothing downstream divides by it. It is the number
+that shows how unequal the imaging effort was, and therefore why pooling the
+cells would have distorted the group mean.
+
+Fill in `animal_level`, a flat DataFrame with exactly these four columns:
+
+| column | meaning |
+|---|---|
+| `ANIMAL` | animal identifier |
+| `GROUP` | `Drug` or `Vehicle` |
+| `MEAN_INTENSITY` | mean of that animal's own cells |
+| `N_CELLS` | how many cells were measured in that animal |
+
+Moves: `.groupby([...]).agg(NAME=("COL", "mean"), ...)`, `.reset_index()`.
 ''',
         starter='''
 # Part a. One row per animal: ANIMAL, GROUP, MEAN_INTENSITY, N_CELLS
@@ -179,7 +134,7 @@ print(animal_level)
     dict(
         label="b",
         prompt_md='''
-### Part b. Group statistics across animals
+## Part b. Group statistics across animals
 
 Build this from `animal_level`, **not** from `cells`. That one choice is the
 whole point of the problem.
@@ -191,9 +146,16 @@ which is what tells a reader how reproducible the effect is. `N_ANIMALS`
 should come out at 6 per group; if you see numbers in the hundreds you are
 counting cells.
 
-Sort by `GROUP`, which puts `Drug` first.
+Fill in `group_stats`, sorted by `GROUP` which puts `Drug` first, with exactly
+these four columns:
 
-Fill in `group_stats`, with `GROUP`, `MEAN`, `SD`, `N_ANIMALS`.
+| column | meaning |
+|---|---|
+| `GROUP` | `Drug` or `Vehicle` |
+| `MEAN` | mean of the animal means in that group |
+| `SD` | **sample** SD of the animal means in that group |
+| `N_ANIMALS` | number of animals in that group |
+
 Moves: `.groupby("GROUP").agg(MEAN=("MEAN_INTENSITY", "mean"), ...)`,
 `.reset_index()`, `.sort_values(...)`.
 ''',
@@ -222,7 +184,33 @@ print(group_stats)
     dict(
         label="c",
         prompt_md='''
-### Part c. The figure
+## Part c. The figure
+
+A figure that shows only two means and two error bars hides your whole
+dataset. Overlaying every animal costs one line and lets a reader see the
+spread, the sample size and any outlier at a glance. Make it your default.
+
+Build it the explicit way: get `fig` and `ax` from `plt.subplots()`, then call
+methods on `ax`. `yerr` comes from the `SD` column of `group_stats`, which is
+the SD **across animals**, not across cells and not the SEM.
+
+What the figure needs:
+
+- `fig, ax = plt.subplots(figsize=(6, 4.5))`
+- the two group means drawn with `ax.errorbar`, at x positions `0` and `1`, in
+  the row order of `group_stats`, with `yerr` set to the `SD` column and
+  `fmt="o"`
+- every animal's own mean overlaid with `ax.scatter`, one point per animal, at
+  the x position of its group. A little jitter on x is welcome but optional
+- x ticks set to `[0, 1]` and labelled with the group names
+- an x label, a y label and a title. An unlabelled axis makes a figure
+  unreadable to everyone except the person who made it, including you in three
+  weeks
+
+Fill in `fig`, `ax`.
+Moves: `plt.subplots(figsize=...)`, `ax.errorbar(..., yerr=..., fmt="o")`,
+`ax.scatter(...)`, `ax.set_xticks`, `ax.set_xticklabels`, `ax.set_xlabel`,
+`ax.set_ylabel`, `ax.set_title`.
 ''',
         starter='''
 # Part c. Group means with SD error bars, every animal overlaid.
