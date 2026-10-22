@@ -332,6 +332,10 @@ def build_one(spec, mod_name):
         cells.append(new_code_cell(TUTOR_CELL.strip() + "\n"))
 
         nb = new_notebook(cells=cells, metadata=nb_metadata())
+        # nbformat hands every new cell a random id, so rebuilding an unchanged
+        # notebook would still produce a different file and a diff of pure
+        # noise. Number them from the problem instead.
+        stamp_ids(nb, spec.PID.lower() + ("-sol" if is_solution else ""))
         full = ROOT / out_path
         full.parent.mkdir(parents=True, exist_ok=True)
         nbformat.write(nb, str(full))
@@ -339,6 +343,12 @@ def build_one(spec, mod_name):
     return {"id": spec.PID, "week": spec.WEEK, "day": spec.DAY,
             "title": spec.TITLE, "topic": spec.TOPIC, "est": spec.EST,
             "path": prob_path, "solution": sol_path}
+
+
+def stamp_ids(nb, prefix):
+    """Deterministic cell ids, so a rebuild with no change produces no diff."""
+    for i, cell in enumerate(nb.cells):
+        cell["id"] = "%s-%02d" % (prefix, i)
 
 
 def load_specs():

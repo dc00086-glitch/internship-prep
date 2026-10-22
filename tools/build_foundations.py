@@ -654,6 +654,9 @@ def main():
         "language_info": {"name": "python"},
     })
     OUT.parent.mkdir(parents=True, exist_ok=True)
+    # Deterministic cell ids, so rebuilding with no change makes no diff.
+    for n, cell in enumerate(nb.cells):
+        cell["id"] = "foundations-%03d" % n
     nbformat.write(nb, str(OUT))
     print("wrote %s (%d cells)" % (OUT.relative_to(ROOT), len(CELLS)))
     return 0
