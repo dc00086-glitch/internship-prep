@@ -132,6 +132,9 @@ tools/function_catalog.py   every function, with what it does and what to watch 
 tools/build_glossary.py     builds the function reference docx
 tools/make_docx.js          turns the glossary data into a Word file
 tools/build_all.py          runs every builder in order
+tools/build_quiz.py         builds the tests and revision sheets in quizzes/
+tools/quiz_specs/           one file per test, the actual source
+quizzes/                    the tests and their revision sheets
 tools/build_tutor_pack.py   builds tutor/, the files to upload to a Claude project
 tutor/                      generated tutor pack: instructions, index, reference,
                             one file per week, solutions kept separate
@@ -279,6 +282,34 @@ from `tools/offline_tools.txt`, plus node and the `docx` npm package for the
 Word reference. `tools/verify.py week06` and
 `tools/negative_test.py W6D1 W6D2` take a filter, which is much faster than
 running the lot while you are working on one week.
+
+## Tests
+
+`quizzes/` holds a test per block of weeks, built the same way as the problems
+and verified the same way.
+
+| Test | Covers | Questions | Time |
+|---|---|---|---|
+| `quizzes/week01_02_quiz.ipynb` | weeks 1 and 2 | 17 | about an hour |
+
+Read `quizzes/week01_02_revision.md` first. It is the revision sheet: arrays,
+missing values, reductions and the axis argument, broadcasting, the pandas
+objects, grouping, transform against agg, merges, reshaping, nominal against
+actual times, crosstabs, figures, the house rules, and the ten things that
+actually go wrong, nine of which produce a plausible number and no error.
+
+Then work the test. `check()` marks it out of 17, gives a subtotal for each of
+the four sections, and names what to revise for anything missed, without
+revealing an answer. `review()` is the worked review: every question, a model
+answer and the reasoning, including for the ones you got right. The review text
+is encoded in the notebook rather than sitting in it in plain sight, like the
+expected answers are.
+
+Open it offline with `python start.py --test 1`, or from the site.
+
+```bash
+python3 tools/build_quiz.py      # also runs as part of tools/build_all.py
+```
 
 ## The tutor project
 

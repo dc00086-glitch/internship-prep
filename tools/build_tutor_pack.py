@@ -27,6 +27,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 SPEC_DIR = ROOT / "tools" / "specs"
+QUIZ_DIR = ROOT / "tools" / "quiz_specs"
 OUT = ROOT / "tutor"
 
 WEEK_TITLES = {
@@ -50,6 +51,88 @@ def load_specs():
         out.append(mod)
     out.sort(key=lambda m: (m.WEEK, m.DAY))
     return out
+
+
+def load_quiz_specs():
+    out = []
+    if not QUIZ_DIR.exists():
+        return out
+    for path in sorted(QUIZ_DIR.glob("w*.py")):
+        spec_obj = importlib.util.spec_from_file_location("tutor_quiz_" + path.stem, path)
+        mod = importlib.util.module_from_spec(spec_obj)
+        spec_obj.loader.exec_module(mod)
+        out.append(mod)
+    return out
+
+
+def build_tests(quizzes):
+    """Every test question, with what each check can say. No answers."""
+    L = ["# Tests",
+         "",
+         "The questions in each test, the variables they are graded on, and every",
+         "failure message their checks can produce. The worked answers are in",
+         "tutor_tests_review.md, which is a separate upload on purpose.",
+         ""]
+    for spec in quizzes:
+        msgs = check_messages(spec.CHECK_CODE)
+        L += ["---", "",
+              "# %s. %s" % (spec.QUIZ_ID, spec.TITLE),
+              "",
+              "- covers: week%s %s" % ("s" if len(spec.WEEKS) > 1 else "",
+                                       " and ".join(str(w) for w in spec.WEEKS)),
+              "- notebook: quizzes/%s.ipynb" % spec.SLUG,
+              "- revision sheet: quizzes/%s_revision.md"
+              % spec.SLUG.replace("_quiz", ""),
+              "- %d questions, about %d minutes" % (len(spec.ITEMS), spec.MINUTES),
+              "",
+              "The student scores it with `check()`, which marks every question and",
+              "names what to revise without revealing anything, and then reads",
+              "`review()`, which is the worked review built into the notebook. If they",
+              "have already run `review()`, the answers are no longer a secret and you",
+              "can talk about them freely.",
+              ""]
+        L += ["## The setup cell every question works on", "",
+              fence(spec.DATA_CODE), ""]
+        for section in spec.SECTIONS:
+            L += ["## Section %s, %s" % (section["key"], section["title"]), "",
+                  section["intro"], ""]
+            for item in spec.ITEMS:
+                if item["section"] != section["key"]:
+                    continue
+                L += ["### Question %s. %s" % (item["id"], item["topic"]), "",
+                      item["prompt_md"].strip(), "",
+                      "- graded on: %s"
+                      % (", ".join("`%s`" % v for v in blanks(item["starter"]))
+                         or "see the starter"),
+                      "- revise: %s" % item["revise"],
+                      "",
+                      "The starter cell they see:", "",
+                      fence(item["starter"]), ""]
+                got = msgs.get(item["id"], [])
+                if got:
+                    L += ["Every failure message this question can produce:", ""]
+                    L += ["- " + t for t in got]
+                    L.append("")
+    return "\n".join(L)
+
+
+def build_tests_review(quizzes):
+    L = ["# Test answers and worked review",
+         "",
+         "The model answer and the written review for every test question. This is",
+         "the same text the student gets from `review()` in the notebook, so once",
+         "they have run that cell there is nothing here they cannot see.",
+         "",
+         "Before they have run it, do not paste these. Mark the question, name the",
+         "cause, and let the notebook do the revealing.",
+         ""]
+    for spec in quizzes:
+        L += ["---", "", "# %s. %s" % (spec.QUIZ_ID, spec.TITLE), ""]
+        for item in spec.ITEMS:
+            L += ["## Question %s. %s" % (item["id"], item["topic"]), "",
+                  fence(item["solution"]), "",
+                  item["review_md"].strip(), ""]
+    return "\n".join(L)
 
 
 def blanks(starter):
@@ -388,6 +471,11 @@ modelling group.
   and the things that actually go wrong.
 - **tutor_weekNN_solutions.md**, if it was uploaded: one correct version of
   each part.
+- **tutor_tests.md**: the tests that cover a block of weeks, with every
+  question, what it is graded on, and every failure message its check can
+  produce. **tutor_tests_review.md** holds the answers and the written review
+  for those, which the notebook also gives the student itself through
+  `review()`.
 
 If the problem they mention is not in the files you have, say so and ask them
 to paste the part prompt. Do not guess at what a problem asks for.
@@ -493,6 +581,10 @@ def main():
     for week in sorted({m.WEEK for m in specs}):
         write("tutor_week%02d.md" % week, build_week(specs, week))
         write("tutor_week%02d_solutions.md" % week, build_week_solutions(specs, week))
+    quizzes = load_quiz_specs()
+    if quizzes:
+        write("tutor_tests.md", build_tests(quizzes))
+        write("tutor_tests_review.md", build_tests_review(quizzes))
 
     print("wrote %d files into %s" % (len(written), OUT))
     total = 0
@@ -504,6 +596,7 @@ def main():
     print("Upload to the project: TUTOR_INSTRUCTIONS.md as the custom")
     print("instructions, then tutor_index.md, tutor_reference.md,")
     print("tutor_environment.md, and the week files you are working on.")
+    print("Add tutor_tests.md when you are about to sit a test.")
     return 0
 
 

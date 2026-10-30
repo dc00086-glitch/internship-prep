@@ -135,6 +135,13 @@
       toolkits readable side by side.
     </p>
     <p class="start-here">
+      Finished a block of weeks? There is a
+      <a id="quiz-link" href="#">test on weeks 1 and 2</a>, seventeen questions
+      and about an hour, which scores itself and then walks you through every
+      answer. Read the
+      <a id="revision-link" href="#">revision sheet</a> first.
+    </p>
+    <p class="start-here">
       Prefer not to depend on Colab? The same notebooks run on your own
       computer with one command, offline after the first time:
       <code>python start.py</code>. See
@@ -757,6 +764,11 @@
     "https://github.com/" + OWNER + "/" + REPO + "/raw/" + BRANCH +
     "/reference/function_reference.docx";
   document.getElementById("foot-start").textContent = START_DATE;
+  document.getElementById("quiz-link").href =
+    colabUrl("quizzes/week01_02_quiz.ipynb");
+  document.getElementById("revision-link").href =
+    "https://github.com/" + OWNER + "/" + REPO + "/blob/" + BRANCH +
+    "/quizzes/week01_02_revision.md";
   document.getElementById("offline-link").href =
     "https://github.com/" + OWNER + "/" + REPO + "/blob/" + BRANCH + "/OFFLINE.md";
   document.getElementById("foot-repo").innerHTML =

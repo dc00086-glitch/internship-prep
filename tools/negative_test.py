@@ -429,6 +429,44 @@ CASES = [
     ("W8D5", "b", "cmax_i = cmax_i[:10]", "patients"),
     ("W8D5", "c", "best_dose = float(np.argmax(p_success_by_dose))", "index of the best"),
     ("W8D5", "c", "p_eff_by_dose = p_eff_by_dose[::-1]", "reverse dose order"),
+
+    ("Q-W1W2", "a1", "mask_ok = np.isnan(conc_single)", "inverted"),
+    ("Q-W1W2", "a1", "conc_ok = conc_single", "still has all"),
+    ("Q-W1W2", "a2", "tmax = float(np.argmax(conc_ok))", "position of the peak"),
+    ("Q-W1W2", "a3", "lambda_z = float(-np.polyfit(time_ok[-3:],"
+                     " np.log10(conc_ok[-3:]), 1)[0])", "log10"),
+    ("Q-W1W2", "a3", "t_half = 1.0 / lambda_z", "1 / lambda_z"),
+    ("Q-W1W2", "a4", "sd_by_time = np.nanstd(conc_matrix, axis=0)", "ddof=1"),
+    ("Q-W1W2", "a4", "mean_by_time = np.nanmean(conc_matrix, axis=1)",
+     "one value per ANIMAL"),
+    ("Q-W1W2", "a4", "mean_by_time = conc_matrix.mean(axis=0)", "contains nan"),
+    ("Q-W1W2", "a5", "norm_matrix = conc_matrix / np.nanmax(conc_matrix, axis=0)",
+     "peak at exactly 1"),
+    ("Q-W1W2", "b1", "post = pk[pk['NOMINAL_H'] > 0].copy()\n"
+                     "n_post = int(len(post))", "nan concentration"),
+    ("Q-W1W2", "b2", "by_group = post.groupby(['GROUP','NOMINAL_H']).agg("
+                     "CONC_MEAN=('CONC_NG_ML','mean'), CONC_SD=('CONC_NG_ML',"
+                     "lambda s: s.std(ddof=0)))", "index rather than a column"),
+    ("Q-W1W2", "b3", "merged = pk.merge(demo, on='ANIMAL')", "inner join"),
+    ("Q-W1W2", "b3", "n_missing_weight = int(merged['BODYWEIGHT_G'].isna().sum())",
+     "counted ROWS"),
+    ("Q-W1W2", "b4", "frac_of_peak = pk.groupby('ANIMAL')['CONC_NG_ML'].max()",
+     "one value per animal"),
+    ("Q-W1W2", "b5", "max_dev_min = float((pk['ACTUAL_H'] - pk['NOMINAL_H'])"
+                     ".abs().max())", "in hours"),
+    ("Q-W1W2", "b6", "pct_high_event = 100.0 * 3.0 / 8.0", "whole study"),
+    ("Q-W1W2", "c1", "group_summary = cells.groupby('GROUP').agg("
+                     "MEAN=('INHIB_PCT','mean'), SD=('INHIB_PCT','std'),"
+                     " N=('INHIB_PCT','size')).reset_index()", "number of CELLS"),
+    ("Q-W1W2", "c2", "ax_c2.cla()\n"
+                     "_g2 = group_summary.sort_values('GROUP')\n"
+                     "ax_c2.errorbar(_g2['GROUP'], _g2['MEAN'],"
+                     " yerr=_g2['SD'] / np.sqrt(_g2['N']), fmt='o')\n"
+                     "ax_c2.set_xlabel('x')\nax_c2.set_ylabel('y')", "SEM"),
+    ("Q-W1W2", "c3", "ax_c3.set_yscale('linear')", "still linear"),
+    ("Q-W1W2", "d1", "q_sd = 'c'", "standard error"),
+    ("Q-W1W2", "d2", "q_axis = 'a'", "collapses the animals"),
+    ("Q-W1W2", "d3", "q_validate = 'b'", "backwards"),
 ]
 
 
@@ -438,7 +476,9 @@ CASES = [
 
 def load_specs():
     out = {}
-    for path in sorted(SPEC_DIR.glob("w*.py")):
+    paths = sorted(SPEC_DIR.glob("w*.py"))
+    paths += sorted((ROOT / "tools" / "quiz_specs").glob("w*.py"))
+    for path in paths:
         spec_obj = importlib.util.spec_from_file_location("spec_" + path.stem, path)
         mod = importlib.util.module_from_spec(spec_obj)
         spec_obj.loader.exec_module(mod)
@@ -447,7 +487,11 @@ def load_specs():
 
 
 def check_cell_source(spec):
-    nb_path = ROOT / "problems" / ("week%02d" % spec.WEEK) / (spec.SLUG + ".ipynb")
+    # A test lives outside problems/, and says where.
+    if getattr(spec, "NB_PATH", None):
+        nb_path = ROOT / spec.NB_PATH
+    else:
+        nb_path = ROOT / "problems" / ("week%02d" % spec.WEEK) / (spec.SLUG + ".ipynb")
     nb = nbformat.read(str(nb_path), as_version=4)
     for cell in nb.cells:
         if cell.cell_type == "code" and "_EXP = _json.loads" in cell.source:

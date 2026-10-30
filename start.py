@@ -8,6 +8,7 @@ Usage, from a terminal in this folder:
     python start.py --list       the whole schedule, with dates
     python start.py --browse     open the browse page in a web browser
     python start.py --foundations open the foundations notebook
+    python start.py --test        open the test on weeks 1 and 2
     python start.py --setup      install everything and stop
     python start.py --no-torch   skip the PyTorch download (week 6 needs it)
 
@@ -275,6 +276,48 @@ def launch_jupyter(notebook):
 
 # ---------------------------------------------------------------------- main
 
+def open_in_jupyter(notebook, opts):
+    """The venv, install and launch sequence, in one place."""
+    if opts["use_venv"] and not opts["in_venv_flag"] and not in_our_venv():
+        if opts["dry_run"]:
+            say("")
+            say("(dry run) would create %s and re-run inside it" % VENV)
+        else:
+            make_venv()
+            reexec_in_venv(sys.argv[1:])
+
+    if opts["dry_run"]:
+        say("")
+        say("(dry run) would install: %s"
+            % (", ".join(missing_packages(opts["with_torch"])) or "nothing, all present"))
+        say("(dry run) would launch JupyterLab on the notebook above")
+        return 0
+
+    install_packages(opts["with_torch"], force=opts["force"])
+
+    if opts["want_setup"]:
+        say("")
+        say("Setup done. Run python start.py to open today's problem.")
+        return 0
+
+    still_missing = [m for m in missing_packages(opts["with_torch"]) if m != "torch"]
+    if still_missing:
+        die("these packages are still missing after the install: %s"
+            % ", ".join(still_missing),
+            "Try: python start.py --reinstall")
+
+    return launch_jupyter(notebook)
+
+
+def tests():
+    """The test notebooks, in order, with their revision sheets."""
+    out = []
+    for path in sorted((ROOT / "quizzes").glob("*_quiz.ipynb")):
+        revision = path.parent / (path.stem.replace("_quiz", "") + "_revision.md")
+        out.append((path, revision if revision.exists() else None))
+    return out
+
+
 def main(argv):
     if sys.version_info < MIN_PYTHON:
         die("this needs Python %d.%d or newer, and you are running %s."
@@ -294,10 +337,11 @@ def main(argv):
     want_browse = "--browse" in argv
     want_setup = "--setup" in argv
     want_found = "--foundations" in argv
+    want_test = "--test" in argv
     dry_run = "--dry-run" in argv
     argv = [a for a in argv
             if a not in ("--list", "--browse", "--setup", "--dry-run",
-                         "--foundations")]
+                         "--foundations", "--test")]
 
     number = None
     for a in argv:
@@ -307,6 +351,9 @@ def main(argv):
         if not a.isdigit():
             die("I expected a problem number, and got %r." % a)
         number = int(a)
+
+    opts = {"use_venv": use_venv, "in_venv_flag": in_venv_flag, "dry_run": dry_run,
+            "with_torch": with_torch, "force": force, "want_setup": want_setup}
 
     problems = load_problems()
     dates = schedule(len(problems))
@@ -332,17 +379,28 @@ def main(argv):
         say("The foundations notebook: Python, numpy, pandas and matplotlib "
             "from the ground up.")
         say("  " + str(notebook))
-        if use_venv and not in_venv_flag and not in_our_venv():
-            if dry_run:
-                say("(dry run) would create %s and re-run inside it" % VENV)
-                return 0
-            make_venv()
-            reexec_in_venv(sys.argv[1:])
-        if dry_run:
-            say("(dry run) would launch JupyterLab on the notebook above")
-            return 0
-        install_packages(with_torch, force=force)
-        return launch_jupyter(notebook)
+        return open_in_jupyter(notebook, opts)
+
+    if want_test:
+        found = tests()
+        if not found:
+            die("there are no tests in quizzes/.",
+                "Run python3 tools/build_quiz.py to build them.")
+        which = 1 if number is None else number
+        if not 1 <= which <= len(found):
+            die("there %s %d test%s, so %d is not one of them."
+                % ("is" if len(found) == 1 else "are", len(found),
+                   "" if len(found) == 1 else "s", which))
+        notebook, revision = found[which - 1]
+        say("Test %d of %d" % (which, len(found)))
+        say("  " + str(notebook))
+        if revision is not None:
+            say("")
+            say("Read the revision sheet first, it is plain text:")
+            say("  " + str(revision))
+        say("")
+        say("Score it with check(), then run review() whatever you scored.")
+        return open_in_jupyter(notebook, opts)
 
     if number is None:
         idx = due_index(dates)
@@ -368,35 +426,7 @@ def main(argv):
     say("  about " + problem["est"])
     say("  " + str(notebook))
 
-    if use_venv and not in_venv_flag and not in_our_venv():
-        if dry_run:
-            say("")
-            say("(dry run) would create %s and re-run inside it" % VENV)
-        else:
-            make_venv()
-            reexec_in_venv(sys.argv[1:])
-
-    if dry_run:
-        say("")
-        say("(dry run) would install: %s"
-            % (", ".join(missing_packages(with_torch)) or "nothing, all present"))
-        say("(dry run) would launch JupyterLab on the notebook above")
-        return 0
-
-    install_packages(with_torch, force=force)
-
-    if want_setup:
-        say("")
-        say("Setup done. Run python start.py to open today's problem.")
-        return 0
-
-    still_missing = [m for m in missing_packages(with_torch) if m != "torch"]
-    if still_missing:
-        die("these packages are still missing after the install: %s"
-            % ", ".join(still_missing),
-            "Try: python start.py --reinstall")
-
-    return launch_jupyter(notebook)
+    return open_in_jupyter(notebook, opts)
 
 
 if __name__ == "__main__":

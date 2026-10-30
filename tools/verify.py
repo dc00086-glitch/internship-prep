@@ -3,7 +3,7 @@
     python3 tools/verify.py
 
 Solution notebooks must end with every part passing.
-Problem notebooks must execute without error, with every part TODO.
+Problem and test notebooks must execute without error, with every part TODO.
 """
 
 import os
@@ -35,14 +35,16 @@ def run_notebook(path):
 
 
 def parse_results(text):
-    return re.findall(r"^Part ([a-z]): (PASS|FAIL|TODO)$", text, flags=re.M)
+    """The machine readable lines from check(), for problems and for tests."""
+    return re.findall(r"^(?:Part|Question) ([a-z][a-z0-9]*): (PASS|FAIL|TODO)$",
+                      text, flags=re.M)
 
 
 def main():
     # Optional filter: python3 tools/verify.py week07
     only = sys.argv[1] if len(sys.argv) > 1 else None
     failures = []
-    for kind in ("solutions", "problems", "reference"):
+    for kind in ("solutions", "problems", "quizzes", "reference"):
         if not (ROOT / kind).exists():
             continue
         for path in sorted((ROOT / kind).rglob("*.ipynb")):

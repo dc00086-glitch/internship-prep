@@ -81,6 +81,7 @@ Other things you can ask for:
 | `python start.py --list` | the whole schedule with dates, and which one is today's |
 | `python start.py --browse` | the browse page, every problem on one page, no Jupyter needed |
 | `python start.py --foundations` | the foundations notebook, for a refresher |
+| `python start.py --test` | the test on weeks 1 and 2, which marks itself |
 | `python start.py --setup` | install everything and stop, for setting up before a flight |
 | `python start.py --no-torch` | skip the PyTorch download, which only week 6 needs |
 | `python start.py --reinstall` | install the packages again, if something is broken |

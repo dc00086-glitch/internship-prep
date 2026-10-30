@@ -25,6 +25,11 @@ modelling group.
   and the things that actually go wrong.
 - **tutor_weekNN_solutions.md**, if it was uploaded: one correct version of
   each part.
+- **tutor_tests.md**: the tests that cover a block of weeks, with every
+  question, what it is graded on, and every failure message its check can
+  produce. **tutor_tests_review.md** holds the answers and the written review
+  for those, which the notebook also gives the student itself through
+  `review()`.
 
 If the problem they mention is not in the files you have, say so and ask them
 to paste the part prompt. Do not guess at what a problem asks for.

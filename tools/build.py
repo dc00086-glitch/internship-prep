@@ -36,7 +36,7 @@ BRANCH = "main"
 # the checker preamble that every problem notebook carries
 # --------------------------------------------------------------------------
 
-CHECK_PREAMBLE = '''# Grading helpers. You do not need to read or edit this cell.
+GRADING_HELPERS = '''# Grading helpers. You do not need to read or edit this cell.
 import base64 as _b64, json as _json, datetime as _dt, textwrap as _tw
 import numpy as _np
 import pandas as _pd
@@ -102,7 +102,10 @@ def _cols_of(obj):
         return None
 
 
-def check():
+'''
+
+
+PROBLEM_GRADING = '''def check():
     """Test every part and print PASS, FAIL or TODO for each one."""
     global CHECK_RESULTS
     names = sorted(n for n in globals() if n.startswith("_part_"))
@@ -301,7 +304,8 @@ def build_one(spec, mod_name):
                 % (spec.PID, ", ".join(clobbered)))
     blob = encode_expected(expected)
 
-    check_code = CHECK_PREAMBLE.replace("__EXPECTED_BLOB__", blob) + "\n\n" + spec.CHECK_CODE.rstrip() + "\n\n\ncheck()\n"
+    preamble = (GRADING_HELPERS + PROBLEM_GRADING).replace("__EXPECTED_BLOB__", blob)
+    check_code = preamble + "\n\n" + spec.CHECK_CODE.rstrip() + "\n\n\ncheck()\n"
 
     for is_solution, out_path in ((False, prob_path), (True, sol_path)):
         cells = [new_markdown_cell(header_md(spec, is_solution, out_path)),
